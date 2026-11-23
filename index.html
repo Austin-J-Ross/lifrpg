@@ -1,0 +1,923 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#272e28">
+  <title>Quest | Your character</title>
+  <style>
+/* Base */
+:root {
+  --paper: #f6f5f0;
+  --surface: #fffefa;
+  --ink: #292e29;
+  --muted: #777c70;
+  --line: #e1e3d8;
+  --green: #53674c;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  color: var(--ink);
+  background: var(--paper);
+  font-size: 14px;
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+button, input, select { font: inherit; }
+button, a { -webkit-tap-highlight-color: transparent; }
+button { cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 2px solid #927daa;
+  outline-offset: 4px;
+}
+[hidden] { display: none !important; }
+h1, h2, h3, p { margin: 0; }
+h2 { font-size: 17px; letter-spacing: -.3px; }
+#top, #classes, #quests { scroll-margin-top: 24px; }
+
+/* Shell */
+.app { display: grid; grid-template-columns: 210px minmax(0, 1fr); min-height: 100vh; }
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  padding: 32px 22px;
+  background: #272e28;
+  color: #f4f3e9;
+  display: flex;
+  flex-direction: column;
+}
+.brand { display: flex; align-items: center; gap: 10px; font-size: 25px; font-weight: 750; letter-spacing: 3px; }
+.brand span { color: #c6d2a9; font-size: 32px; }
+.tagline { margin: 8px 0 38px; font-size: 8px; letter-spacing: 1.7px; color: #a5b09f; }
+.nav { display: grid; gap: 7px; }
+.nav a { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 10px 13px; border-radius: 7px; color: #b4beae; font-size: 12px; }
+.nav a.active { color: #fffefa; background: #414b3d; }
+.nav a:hover { background: #384333; }
+.nav a>span { width: 18px; text-align: center; font-size: 18px; }
+.sidebar-bottom { margin-top: auto; padding-top: 24px; border-top: 1px solid #454b40; }
+.sidebar-bottom>small { font-size: 8px; letter-spacing: 1.5px; color: #a0ac96; }
+.sidebar-bottom>p { margin: 15px 0 24px; font: 20px/1.5 Georgia, serif; color: #cbd2bd; }
+.user { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.user>div { min-width: 0; }
+.user strong { display: block; overflow-wrap: anywhere; font-size: 12px; }
+.user small { display: block; margin-top: 4px; color: #a0ac96; font-size: 10px; }
+.avatar { display: grid; place-items: center; width: 36px; height: 36px; flex-shrink: 0; border-radius: 50%; background: #d7ddc6; color: #4b5940; font-weight: 700; }
+main { width: 100%; max-width: 1120px; min-width: 0; margin: 0 auto; padding: 32px clamp(24px, 4vw, 56px) 28px; }
+.topline { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 22px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+.topline b { color: #555e50; font-weight: 500; margin-left: 5px; }
+.preview { flex-shrink: 0; border: 1px solid #d8ddce; border-radius: 20px; padding: 5px 9px; font-size: 9px; letter-spacing: .6px; }
+
+/* Character: name and rings share a row; tags use the full width below. */
+.profile-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 15px 20px; padding: 30px 0; }
+h1 { min-width: 0; font-size: clamp(28px, 3vw, 36px); line-height: 1.3; letter-spacing: -1.3px; }
+.class-tags { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 7px; }
+.class-tag { display: inline-flex; align-items: center; gap: 7px; min-height: 29px; padding: 5px 9px; border: 1px solid var(--tag-border); border-radius: 6px; background: var(--tint); color: var(--color); font-size: 11px; line-height: 1.4; }
+.class-tag b { padding-left: 7px; border-left: 1px solid var(--tag-border); font-size: 10px; }
+.class-tag:hover, .class-tag[aria-expanded="true"] { border-color: var(--color); }
+.health-grid { display: flex; align-items: center; gap: 6px; }
+.health-domain { display: grid; place-items: center; width: 44px; height: 44px; padding: 3px; border: 0; border-radius: 50%; background: transparent; color: var(--domain-color); touch-action: pan-y; -webkit-touch-callout: none; user-select: none; }
+.health-ring { width: 38px; height: 38px; position: relative; }
+.health-ring-track { display: block; width: 100%; height: 100%; transform: rotate(-90deg); }
+.health-ring-track circle { fill: none; stroke-width: 6; }
+.ring-track { stroke: #dfe2d6; }
+.ring-value { stroke: currentColor; transition: stroke-dashoffset .2s; }
+.health-domain-icon { position: absolute; inset: 0; display: grid; place-items: center; color: var(--health-icon-color); }
+.health-domain-icon svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+
+/* One viewport-positioned popup for both types of details. */
+.detail-popup { position: fixed; z-index: 20; width: 270px; max-width: calc(100vw - 24px); padding: 15px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); box-shadow: 0 8px 28px #27332220; pointer-events: none; }
+.detail-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 14px; font-size: 12px; font-weight: 650; }
+.detail-heading span { flex-shrink: 0; color: var(--muted); font-size: 10px; font-weight: 400; }
+.xp-label { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; margin-bottom: 9px; color: var(--muted); font-size: 10px; }
+.xp-label b { color: var(--color); font-weight: 600; }
+.bar { height: 5px; border-radius: 5px; background: #e9ebe2; overflow: hidden; }
+.bar span { display: block; height: 100%; border-radius: inherit; background: var(--color); }
+.health-detail .detail-heading { margin: 0; }
+
+/* Quests */
+.quest-panel { padding: 24px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.quest-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.quest-title h2 { display: flex; align-items: center; gap: 8px; }
+#quest-count { padding: 3px 7px; border-radius: 12px; background: #efeee7; font-size: 10px; font-weight: 500; }
+.add-button { min-height: 36px; display: flex; align-items: center; gap: 7px; padding: 7px 12px; border: 0; border-radius: 6px; background: var(--green); color: white; font-size: 11px; }
+.add-button span { font-size: 18px; line-height: 1; }
+.quest-intro { margin: 10px 0 19px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.quest { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; align-items: start; gap: 5px 8px; padding: 19px 0; border-top: 1px solid var(--line); }
+.complete-button { display: grid; place-items: center; width: 32px; height: 32px; padding: 0; background: transparent; border: 0; border-radius: 6px; }
+.complete-button::before { content: ''; width: 17px; height: 17px; border: 1px solid #c8cfbc; border-radius: 5px; }
+.complete-button:hover::before { background: #dce6d1; border-color: var(--green); }
+.quest-copy { padding-top: 5px; min-width: 0; }
+.quest h3 { font-size: 13px; font-weight: 600; line-height: 1.5; overflow-wrap: anywhere; }
+.quest-class { margin-top: 5px; font-size: 11px; color: var(--muted); }
+.reward { padding-top: 8px; white-space: nowrap; font-size: 11px; color: #60764e; font-weight: 650; }
+.quest-meta { grid-column: 2 / -1; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 18px; margin-top: 9px; font-size: 10px; line-height: 1.6; color: var(--muted); }
+.deadline { color: #997045; }
+.quest.overdue { margin: 4px -10px; padding: 16px 10px; border: 1px solid #f1e0d6; border-radius: 8px; background: #fcf3ee; }
+.overdue .deadline, .damage { color: #ad6046; }
+.quest-footer { display: flex; gap: 9px; margin-top: 12px; padding-top: 17px; border-top: 1px solid var(--line); font-size: 11px; line-height: 1.6; color: var(--muted); }
+.quest-footer>span { flex-shrink: 0; }
+.empty-state { padding: 25px 0; color: var(--muted); font-size: 13px; }
+.footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 10px; }
+.footer span:last-child { letter-spacing: 1px; font-size: 9px; }
+
+/* Dialog and feedback */
+dialog { width: min(420px, calc(100vw - 32px)); max-height: calc(100dvh - 40px); overflow: auto; padding: 26px; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); color: var(--ink); }
+dialog::backdrop { background: #20271f88; }
+dialog h2 { margin-bottom: 22px; }
+dialog label { display: block; margin: 15px 0; font-size: 12px; }
+dialog input, dialog select { display: block; width: 100%; min-width: 0; margin-top: 7px; padding: 10px; border: 1px solid #d8dbce; border-radius: 6px; background: var(--surface); color: inherit; }
+.form-note { color: var(--muted); font-size: 11px; line-height: 1.6; }
+.actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
+.actions button { min-height: 40px; padding: 9px 15px; border: 1px solid #d8dbce; border-radius: 6px; background: var(--surface); }
+.actions .primary { background: var(--green); color: white; border-color: var(--green); }
+#toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: max-content; max-width: calc(100vw - 32px); padding: 13px 20px; border-radius: 9px; background: #303d2d; color: white; box-shadow: 0 5px 25px #0002; font-size: 12px; line-height: 1.5; z-index: 30; }
+#toast:empty { display: none; }
+
+/* Tablet and mobile */
+@media (max-width: 900px) {
+  .app { grid-template-columns: 180px minmax(0, 1fr); }
+  .sidebar { padding: 26px 16px; }
+  main { padding: 26px 24px; }
+  .tagline { font-size: 7px; letter-spacing: 1px; }
+  .health-grid { gap: 1px; }
+}
+@media (max-width: 680px) {
+  .app { display: block; }
+  .sidebar { position: static; height: auto; padding: 15px 18px 10px; gap: 12px; }
+  .brand { font-size: 20px; }
+  .brand span { font-size: 25px; }
+  .tagline, .sidebar-bottom { display: none; }
+  .nav { display: flex; gap: 5px; }
+  .nav a { justify-content: center; padding: 8px 10px; min-height: 40px; font-size: 11px; gap: 6px; }
+  .nav a>span { font-size: 16px; }
+  main { padding: 21px 18px; }
+  .profile-header { gap: 15px 12px; padding: 25px 0; }
+  .health-grid { gap: 0; }
+  .health-domain { width: 40px; height: 44px; padding: 2px; }
+  .health-ring { width: 34px; height: 34px; }
+  .class-tag { font-size: 10px; min-height: 30px; }
+  .quest-panel { padding: 18px 15px; }
+  .quest-intro { font-size: 11px; }
+}
+@media (max-width: 380px) {
+  .topline { font-size: 10px; }
+  .preview { font-size: 8px; padding: 5px 6px; }
+  .profile-header { column-gap: 5px; }
+  h1 { font-size: 26px; }
+  .health-domain { width: 36px; }
+  .health-ring { width: 31px; height: 31px; }
+  .health-domain-icon svg { width: 16px; height: 16px; }
+  .add-button { padding: 7px 8px; font-size: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+}
+
+/* Compact quest size selector at the bottom of the dialog. */
+.quest-size { min-width: 0; padding: 18px 0 0; margin: 20px 0 0; border: 0; border-top: 1px solid var(--line); }
+.quest-size legend { padding: 0 8px 0 0; font-size: 11px; color: var(--muted); }
+.size-options { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; }
+dialog .size-option { position: relative; display: block; min-width: 0; margin: 0; cursor: pointer; }
+dialog .size-option input { position: absolute; width: 1px; height: 1px; margin: 0; padding: 0; opacity: 0; }
+.size-card { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 11px 2px; border: 1px solid #d8dbce; border-radius: 7px; background: var(--surface); }
+.size-card strong { font-size: 10px; font-weight: 600; white-space: nowrap; }
+.size-card>span { color: var(--green); font-size: 10px; }
+.size-card small { font-size: 9px; color: var(--muted); white-space: nowrap; }
+.size-option input:checked + .size-card { border-color: var(--green); background: #e8eedf; box-shadow: inset 0 0 0 1px var(--green); }
+.size-option input:focus-visible + .size-card { outline: 2px solid #927daa; outline-offset: 3px; }
+.size-option:hover .size-card { border-color: var(--green); }
+.size-help { margin-top: 9px; color: var(--muted); font-size: 10px; line-height: 1.5; }
+@media (max-width: 380px) { dialog { padding: 20px 16px; } .size-options { gap: 3px; } .size-card strong { font-size: 9px; } }
+
+/* Class-linked domains and optional quest damage. */
+.domain-link { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; margin: 16px 0; font-size: 12px; color: var(--muted); }
+.domain-link strong { color: var(--green); font-weight: 600; }
+.domain-link small { flex-basis: 100%; font-size: 10px; }
+dialog .damage-toggle { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 18px 0; cursor: pointer; }
+.damage-toggle small { display: block; font-size: 10px; color: var(--muted); margin-top: 5px; line-height: 1.5; }
+dialog .damage-toggle input { appearance: none; flex-shrink: 0; position: relative; width: 34px; height: 20px; margin: 0; padding: 0; border-radius: 12px; border: 1px solid #cbd1c3; background: #dde1d6; cursor: pointer; }
+.damage-toggle input::before { content: ''; position: absolute; width: 14px; height: 14px; top: 2px; left: 2px; border-radius: 50%; background: white; box-shadow: 0 1px 3px #0002; }
+.damage-toggle input:checked { background: var(--green); border-color: var(--green); }
+.damage-toggle input:checked::before { transform: translateX(14px); }
+.detail-domain { font-size: 10px; color: var(--muted); margin: -7px 0 13px; }
+
+/* Independent pages and profile settings. */
+#display-name { overflow-wrap: anywhere; }
+.page h1:focus { outline: none; }
+.page-heading { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 28px 0 24px; }
+.page-heading h1 { font-size: 28px; letter-spacing: -.8px; }
+.page-heading p { margin-top: 8px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.profile-details { grid-column: 1 / -1; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.profile-bio { margin-top: 7px; max-width: 640px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.text-link { color: var(--green); font-size: 11px; white-space: nowrap; }
+.surface { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 24px; }
+.form-panel { max-width: 720px; }
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 20px; }
+.form-panel label { display: block; margin-bottom: 20px; font-size: 12px; }
+.form-panel input, .form-panel textarea, dialog textarea, .new-skill-form input { display: block; width: 100%; min-width: 0; padding: 10px; margin-top: 7px; border: 1px solid #d8dbce; border-radius: 6px; background: var(--paper); color: var(--ink); font: inherit; }
+textarea { resize: vertical; }
+.optional { color: var(--muted); font-size: 10px; font-weight: 400; margin-left: 5px; }
+.class-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.class-card { min-width: 0; padding: 22px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+.card-heading { display: flex; justify-content: space-between; align-items: start; gap: 12px; }
+.card-heading h2 { font-size: 15px; overflow-wrap: anywhere; }
+.level-badge { flex-shrink: 0; padding: 4px 7px; background: var(--tint); color: var(--color); border-radius: 5px; font-size: 10px; }
+.class-domain { margin-top: 8px; color: var(--color); font-size: 11px; }
+.class-summary { margin: 13px 0; color: var(--muted); font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.class-stats { margin-bottom: 17px; color: var(--muted); font-size: 10px; line-height: 1.6; }
+.skills-heading { margin: 20px 0 10px; font-size: 12px; font-weight: 600; }
+.skill-list { max-height: 185px; min-height: 80px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #cbd1c3 transparent; padding: 0 10px 0 0; margin: 0; list-style: none; }
+.skill-row { padding: 12px 0; border-bottom: 1px solid var(--line); }
+.skill-row:first-child { padding-top: 2px; }
+.skill-name { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 9px; font-size: 12px; }
+.skill-name strong { font-weight: 500; overflow-wrap: anywhere; }
+.skill-name>span { flex-shrink: 0; color: var(--color); font-size: 10px; }
+.new-skill-form { display: flex; align-items: center; gap: 7px; padding-top: 16px; border-top: 1px solid var(--line); margin-top: 12px; }
+.new-skill-form input { margin: 0; font-size: 11px; flex: 1; }
+.small-button { padding: 10px; border: 1px solid #d8dbce; border-radius: 6px; background: #edf0e6; color: var(--green); white-space: nowrap; font-size: 10px; }
+.progression-note { color: var(--muted); font-size: 11px; line-height: 1.6; margin-bottom: 20px; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+@media (max-width: 1000px) { .class-cards { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 680px) { .nav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px; } .nav a { padding: 8px 4px; gap: 5px; } .nav a>span { width: auto; } .page-heading h1 { font-size: 25px; } .form-grid { grid-template-columns: minmax(0, 1fr); } .surface, .class-card { padding: 20px 16px; } }
+
+  </style>
+
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <a class="brand" href="#/home"><span aria-hidden="true">&#10023;</span> QUEST</a>
+      <p class="tagline">A LITTLE BETTER, EVERY DAY</p>
+      <nav class="nav" aria-label="Main navigation">
+        <a href="#/home" data-page="home" class="active" aria-current="page"><span aria-hidden="true">&#9638;</span> Home</a>
+        <a href="#/about" data-page="about"><span aria-hidden="true">&#9675;</span> About</a>
+        <a href="#/classes" data-page="classes"><span aria-hidden="true">&#9827;</span> Classes</a>
+        <a href="#/quests" data-page="quests"><span aria-hidden="true">&#9873;</span> Quests</a>
+      </nav>
+      <div class="sidebar-bottom">
+        <small>THE EVERYDAY ADVENTURE</small>
+        <p>Small actions.<br>Meaningful progress.</p>
+        <div class="user">
+          <span class="avatar" id="avatar" aria-hidden="true">D</span>
+          <div><strong id="sidebar-name">Douglas</strong><small>Your character</small></div>
+        </div>
+      </div>
+    </aside>
+
+    <main id="top">
+      <header class="topline">
+        <span>Your character <span aria-hidden="true"> / </span><b id="page-name">Home</b></span>
+        <span class="preview">Interactive mock-up</span>
+      </header>
+
+      <section id="page-home" class="page" aria-label="Home">
+      <section class="profile-header" aria-label="Your character">
+        <h1 id="display-name">Douglas</h1>
+        <div id="health-grid" class="health-grid" role="group" aria-label="Health of your domains"></div>
+        <div id="profile-details" class="profile-details" hidden></div>
+        <div id="classes" class="class-tags" role="group" aria-label="Your classes"></div>
+      </section>
+
+      <section class="quest-panel" aria-labelledby="home-quests-heading">
+        <header class="quest-title"><h2 id="home-quests-heading">Your next quests</h2><a class="text-link" href="#/quests">View all &rarr;</a></header>
+        <p class="quest-intro">A little progress in the things that matter.</p>
+        <div id="home-quest-list"></div>
+      </section>
+      </section>
+
+      <section id="page-about" class="page" aria-labelledby="about-heading" hidden>
+        <header class="page-heading"><div><h1 id="about-heading" tabindex="-1">About you</h1><p>The personal details shown on your home screen.</p></div></header>
+        <form id="about-form" class="surface form-panel">
+          <div class="form-grid">
+            <label>First name<input name="firstName" autocomplete="given-name" maxlength="40" required></label>
+            <label>Last name <span class="optional">Optional</span><input name="lastName" autocomplete="family-name" maxlength="40"></label>
+            <label>Pronouns <span class="optional">Optional</span><input name="pronouns" maxlength="40" placeholder="e.g. they/them"></label>
+            <label>Location <span class="optional">Optional</span><input name="location" autocomplete="address-level2" maxlength="80" placeholder="Your city or region"></label>
+          </div>
+          <label>A little about you <span class="optional">Optional</span><textarea name="bio" rows="4" maxlength="300" placeholder="What matters to you? What are you working toward?"></textarea></label>
+          <p class="form-note" id="storage-note">Saved in this browser. Filled-in details appear on Home.</p>
+          <div class="actions"><button type="submit" class="primary">Save profile</button></div>
+        </form>
+      </section>
+
+      <section id="page-classes" class="page" aria-labelledby="classes-heading" hidden>
+        <header class="page-heading"><div><h1 id="classes-heading" tabindex="-1">Your classes</h1><p>Build skills in every part of your life.</p></div><button class="add-button" id="add-class" type="button">+ New class</button></header>
+        <p class="progression-note">Skill levels start at 1. Each next level costs 50% more XP, starting at 100 XP.</p>
+        <div id="class-cards" class="class-cards"></div>
+      </section>
+
+      <section id="page-quests" class="page" aria-labelledby="quests-page-heading" hidden>
+        <header class="page-heading"><div><h1 id="quests-page-heading" tabindex="-1">Your quests</h1><p>Turn intentions into experience.</p></div></header>
+      <section id="quests" class="quest-panel" aria-labelledby="quest-heading">
+        <header class="quest-title">
+          <h2 id="quest-heading">Active quests <span id="quest-count">3</span></h2>
+          <button id="add-quest" class="add-button" type="button"><span aria-hidden="true">+</span> New quest</button>
+        </header>
+        <p class="quest-intro">Complete quests to earn experience in the things that matter.</p>
+        <div id="quest-list"></div>
+        <p class="quest-footer"><span aria-hidden="true">&#9719;</span> Overdue quests damage their linked domain over time. Complete a quest to stop further damage.</p>
+      </section>
+
+
+      </section>
+
+      <footer class="footer"><span>Your journey, at your pace.</span><span>CHAPTER 01 &middot; THE EVERYDAY</span></footer>
+    </main>
+  </div>
+
+  <div id="detail-popup" class="detail-popup" role="tooltip" hidden></div>
+  <dialog id="quest-dialog" aria-labelledby="dialog-heading">
+    <form id="quest-form">
+      <h2 id="dialog-heading">A new little adventure</h2>
+      <label>Quest objective<input name="title" required maxlength="90" placeholder="What would you like to accomplish?"></label>
+      <label>Class<select name="classId" id="class-select"></select></label>
+      <label>Skill<select name="skill" id="skill-select" required></select></label>
+      <label>Deadline<input type="date" name="deadline" min="1900-01-01" max="9999-12-31" aria-describedby="deadline-help" required></label>
+      <p id="deadline-help" class="form-note">Type a date or use the calendar. Due at 11:59 PM local time.</p>
+      <p class="domain-link">Linked domain <strong id="quest-domain" aria-live="polite">Mental</strong><small>Set automatically by the class.</small></p>
+      <label class="damage-toggle"><span>No damage<small>Earn XP without overdue health damage.</small></span><input type="checkbox" id="no-damage" name="noDamage" role="switch"></label>
+      <p class="form-note">Quests and progress are saved in this browser.</p>
+      <fieldset class="quest-size" aria-describedby="size-help">
+        <legend>Quest size</legend>
+        <div id="quest-size-options" class="size-options"></div>
+        <p id="size-help" class="size-help">XP on completion &middot; Health damage per day after the deadline.</p>
+      </fieldset>
+      <div class="actions"><button type="button" id="cancel">Cancel</button><button type="submit" class="primary">Create Quest</button></div>
+    </form>
+  </dialog>
+  <dialog id="class-dialog" aria-labelledby="class-dialog-heading">
+    <form id="class-form">
+      <h2 id="class-dialog-heading">A new class</h2>
+      <label>Class name<input name="className" maxlength="50" required placeholder="e.g. Musician"></label>
+      <label>Category<select name="category" id="new-class-category"><option value="personal">Personal</option><option value="artistic">Artistic</option><option value="professional">Professional</option><option value="general">General</option></select></label>
+      <label id="general-domain-field" hidden>General class domain<select name="generalDomain" id="general-domain"><option value="Physical">Physical</option><option value="Shelter">Shelter</option><option value="Mental">Mental</option></select></label>
+      <p class="domain-link">Linked domain <strong id="new-class-domain">Mental</strong></p>
+      <label>Summary <span class="optional">Optional</span><textarea name="summary" maxlength="180" rows="3" placeholder="What is this part of your life about?"></textarea></label>
+      <p class="form-note">Starts at level 1 with a General skill.</p>
+      <div class="actions"><button type="button" id="cancel-class">Cancel</button><button type="submit" class="primary">Create Class</button></div>
+    </form>
+  </dialog>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <script>
+'use strict';
+
+// Initial sample state. User changes are saved locally after each action.
+const classes = [
+  { name: 'Husband', category: 'personal', domain: 'Mental', level: 6, xp: 640, max: 1000, color: '#98606a', tint: '#f3e7e8' },
+  { name: 'Homekeeper', category: 'general', domain: 'Shelter', level: 4, xp: 280, max: 600, color: '#8b7040', tint: '#f2eddf' },
+  { name: 'Game Designer', category: 'artistic', domain: 'Mental', level: 8, xp: 820, max: 1200, color: '#80659e', tint: '#ede8f4' },
+  { name: 'Materials Engineer', category: 'professional', domain: 'Monetary', level: 12, xp: 1450, max: 2000, color: '#517880', tint: '#e6eff0' },
+  { name: 'Corporate Team Leader', category: 'professional', domain: 'Monetary', level: 7, xp: 530, max: 1000, color: '#5d7650', tint: '#e9eee3' },
+  { name: 'Writer', category: 'artistic', domain: 'Mental', level: 3, xp: 190, max: 500, color: '#946c47', tint: '#f4eadf' },
+  { name: 'Self Keeper', category: 'general', domain: 'Physical', level: 1, xp: 0, max: 500, color: '#517880', tint: '#e6eff0' }
+];
+// Existing sample class progress belongs to General; new skills start at zero.
+for (const entry of classes) {
+  const extra = entry.name === 'Writer' ? ['Short Stories', 'Characters']
+    : entry.name === 'Game Designer' ? ['Mechanics'] : [];
+  entry.skills = [{ name: 'General', xp: entry.xp }, ...extra.map(name => ({ name, xp: 0 }))];
+}
+const SKILL_XP_BASE = 100;
+const SKILL_XP_GROWTH = 1.5;
+function skillProgress(totalXP) {
+  let level = 1, xp = Math.max(0, Number(totalXP) || 0);
+  let next = SKILL_XP_BASE;
+  while (xp >= next) {
+    xp -= next;
+    level++;
+    next = Math.ceil(SKILL_XP_BASE * SKILL_XP_GROWTH ** (level - 1));
+  }
+  return { level, xp, next };
+}
+const domainForClass = classId => classes[classId].domain;
+
+const healthIcons = {
+  Shelter: '<path d="m3 10 9-7 9 7M5 9v12h14V9M9 21v-8h6v8"/>',
+  Monetary: '<rect x="3" y="5" width="18" height="15" rx="3"/><path d="M3 9h18M16 13h5v4h-5a2 2 0 0 1 0-4Z"/>',
+  Mental: '<path d="M9 18v3h8v-5a7 7 0 1 0-12-5l-2 4h4v3h2Z"/><path d="m10 10 2 2 4-4"/>',
+  Physical: '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/><path d="M3 12h5l2-4 3 8 2-4h6"/>'
+};
+const domains = [
+  { name: 'Shelter', value: 86, color: '#7f9272' },
+  { name: 'Monetary', value: 74, color: '#9b9b6b' },
+  { name: 'Mental', value: 62, color: '#9b8bac' },
+  { name: 'Physical', value: 81, color: '#72979a' }
+];
+const questSizes = {
+  tiny: { label: 'Tiny', xp: 25, rate: 1 },
+  small: { label: 'Small', xp: 50, rate: 2 },
+  medium: { label: 'Medium', xp: 100, rate: 4 },
+  large: { label: 'Large', xp: 200, rate: 8 },
+  veryLarge: { label: 'Very large', xp: 400, rate: 16 }
+};
+
+const DAY = 86400000;
+function localDateValue(date) {
+  return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-');
+}
+function deadlineForDate(value) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return NaN;
+  const [year, month, day] = value.split('-').map(Number);
+  if (year < 1900 || year > 9999) return NaN;
+  const date = new Date(0);
+  date.setFullYear(year, month - 1, day);
+  date.setHours(23, 59, 0, 0);
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) return NaN;
+  return date.getTime();
+}
+function dayDeadline(offset) {
+  const date = new Date();
+  date.setDate(date.getDate() + offset);
+  return deadlineForDate(localDateValue(date));
+}
+const quests = [
+  { title: 'Plan a date night', classId: 0, xp: 120, skill: 'General', deadline: dayDeadline(1), domain: 'Mental', rate: 2 },
+  { title: 'Finish the bathroom trim', classId: 1, xp: 180, skill: 'General', deadline: dayDeadline(-1), domain: 'Shelter', rate: 3 },
+  { title: 'Playtest the new combat system', classId: 2, xp: 200, skill: 'Mechanics', deadline: dayDeadline(3), domain: 'Mental', rate: 2 }
+];
+
+const STORAGE_KEY = 'quest-character-v1';
+let profile = { firstName: 'Douglas', lastName: '', pronouns: '', location: '', bio: '' };
+let storageAvailable = true;
+function validStoredClass(entry) {
+  return entry && typeof entry.name === 'string' && entry.name.trim() &&
+    ['Mental','Monetary','Shelter','Physical'].includes(entry.domain) &&
+    Number.isSafeInteger(entry.level) && entry.level >= 1 && Number.isFinite(entry.xp) && entry.xp >= 0 &&
+    Number.isFinite(entry.max) && entry.max > entry.xp && Array.isArray(entry.skills) &&
+    entry.skills.some(skill => skill.name === 'General') && entry.skills.every(skill =>
+      typeof skill.name === 'string' && Number.isSafeInteger(skill.xp) && skill.xp >= 0);
+}
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    if (saved.version !== 1 || !Array.isArray(saved.classes) || !saved.classes.length ||
+        !saved.classes.every(validStoredClass) || !Array.isArray(saved.quests)) return;
+    const validQuests = saved.quests.every(quest => quest && typeof quest.title === 'string' &&
+      Number.isInteger(quest.classId) && saved.classes[quest.classId] &&
+      saved.classes[quest.classId].skills.some(skill => skill.name === quest.skill) &&
+      Number.isFinite(quest.deadline) && !Number.isNaN(new Date(quest.deadline).getTime()) &&
+      Number.isFinite(quest.xp) && quest.xp >= 0 && Number.isFinite(quest.rate) && quest.rate >= 0);
+    if (!validQuests) return;
+    classes.splice(0, classes.length, ...saved.classes);
+    quests.splice(0, quests.length, ...saved.quests);
+    if (saved.profile) for (const key of Object.keys(profile)) {
+      if (typeof saved.profile[key] === 'string') profile[key] = saved.profile[key];
+    }
+  } catch { storageAvailable = false; }
+}
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 1, profile, classes, quests }));
+    return true;
+  } catch {
+    storageAvailable = false;
+    $('#storage-note').textContent = 'Browser storage is unavailable. Changes last until you close or reload this page.';
+    toast('Changes applied, but browser storage is unavailable.');
+    return false;
+  }
+}
+loadState();
+
+const $ = selector => document.querySelector(selector);
+const escapeHTML = value => String(value).replace(/[&<>"']/g, character => ({
+  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+})[character]);
+
+// Only the center icon changes hue: red -> amber -> green as health rises.
+function healthIconColor(value) {
+  const health = Math.max(0, Math.min(100, value));
+  return `hsl(${health * 1.2}, 58%, 40%)`;
+}
+
+function renderHealth() {
+  $('#health-grid').innerHTML = domains.map((domain, index) => `
+    <button class="health-domain" type="button" data-domain="${index}"
+      style="--domain-color:${domain.color};--health-icon-color:${healthIconColor(domain.value)}" aria-label="${domain.name} Health: ${domain.value}%">
+      <span class="health-ring">
+        <svg class="health-ring-track" viewBox="0 0 100 100" aria-hidden="true">
+          <circle class="ring-track" cx="50" cy="50" r="44"/>
+          <circle class="ring-value" cx="50" cy="50" r="44" pathLength="100"
+            stroke-dasharray="100 100" stroke-dashoffset="${100 - domain.value}"/>
+        </svg>
+        <span class="health-domain-icon" aria-hidden="true"><svg viewBox="0 0 24 24">${healthIcons[domain.name]}</svg></span>
+      </span>
+    </button>`).join('');
+}
+
+function renderClasses() {
+  $('#classes').innerHTML = classes.map((entry, index) => `
+    <button class="class-tag" type="button" data-class="${index}" aria-expanded="false"
+      style="--color:${entry.color};--tint:${entry.tint};--tag-border:${entry.color}40">
+      <span>${escapeHTML(entry.name)}</span><b>${entry.level}</b>
+    </button>`).join('');
+}
+
+function renderQuests() {
+  $('#quest-count').textContent = quests.length;
+  const questMarkup = quests.map((quest, index) => {
+    const overdue = quest.deadline < Date.now();
+    const days = Math.max(1, Math.ceil(Math.abs(quest.deadline - Date.now()) / DAY));
+    const deadline = overdue ? `Overdue &middot; ${days}d` : days === 1 ? 'Due within 24 hours' : `Due in ${days} days`;
+    const dueDate = new Date(quest.deadline);
+    const dateLabel = dueDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    const domain = domainForClass(quest.classId);
+    const hasDamage = !quest.noDamage && quest.rate > 0;
+    const penalty = !hasDamage ? `${domain} &middot; No damage` : overdue
+      ? `&minus;${quest.rate} ${domain.toLowerCase()} / day`
+      : `${domain} &middot; &minus;${quest.rate}/day if overdue`;
+    return `
+      <article class="quest ${overdue ? 'overdue' : ''}">
+        <button class="complete-button" type="button" data-complete="${index}" aria-label="Complete ${escapeHTML(quest.title)}"></button>
+        <div class="quest-copy"><h3>${escapeHTML(quest.title)}</h3><p class="quest-class">${escapeHTML(classes[quest.classId].name)} &middot; ${escapeHTML(quest.skill || 'General')}</p></div>
+        <span class="reward">+${quest.xp} XP</span>
+        <div class="quest-meta"><time class="deadline" datetime="${dueDate.toISOString()}">${deadline} &middot; ${dateLabel}, 11:59 PM</time><span class="${overdue && hasDamage ? 'damage' : ''}">${penalty}</span></div>
+      </article>`;
+  });
+  const empty = '<p class="empty-state">All clear. A little breathing room, well earned.</p>';
+  $('#quest-list').innerHTML = questMarkup.join('') || empty;
+  $('#home-quest-list').innerHTML = questMarkup.slice(0, 3).join('') || empty;
+}
+
+// Shared fixed popup: clamp it to the viewport instead of guessing tag alignment.
+const popup = $('#detail-popup');
+let popupTarget = null;
+let pinned = false;
+let dismissTimer;
+function closeDetails() {
+  clearTimeout(dismissTimer);
+  if (popupTarget) {
+    popupTarget.removeAttribute('aria-describedby');
+    if (popupTarget.matches('.class-tag')) popupTarget.setAttribute('aria-expanded', 'false');
+  }
+  popup.hidden = true;
+  popupTarget = null;
+  pinned = false;
+}
+function positionDetails() {
+  if (!popupTarget || popup.hidden) return;
+  const target = popupTarget.getBoundingClientRect();
+  const bounds = popup.getBoundingClientRect();
+  const gutter = 12;
+  const left = Math.max(gutter, Math.min(target.left, window.innerWidth - bounds.width - gutter));
+  let top = target.bottom + 10;
+  if (top + bounds.height > window.innerHeight - gutter) top = target.top - bounds.height - 10;
+  popup.style.left = `${left}px`;
+  popup.style.top = `${Math.max(gutter, Math.min(top, window.innerHeight - bounds.height - gutter))}px`;
+}
+function showDetails(target, pin = false) {
+  if (pinned && !pin) return;
+  closeDetails();
+  popupTarget = target;
+  pinned = pin;
+  if (target.matches('.class-tag')) {
+    const entry = classes[Number(target.dataset.class)];
+    popup.className = 'detail-popup';
+    popup.style.setProperty('--color', entry.color);
+    popup.innerHTML = `
+      <div class="detail-heading">${escapeHTML(entry.name)}<span>Level ${entry.level}</span></div>
+      <p class="detail-domain">${entry.domain} domain</p>
+      <div class="xp-label"><b>${entry.xp.toLocaleString()} / ${entry.max.toLocaleString()} XP</b><span>${(entry.max - entry.xp).toLocaleString()} to next level</span></div>
+      <div class="bar" role="progressbar" aria-label="${escapeHTML(entry.name)} experience" aria-valuenow="${entry.xp}" aria-valuemin="0" aria-valuemax="${entry.max}"><span style="width:${entry.xp / entry.max * 100}%"></span></div>`;
+    target.setAttribute('aria-expanded', 'true');
+  } else {
+    const domain = domains[Number(target.dataset.domain)];
+    popup.className = 'detail-popup health-detail';
+    popup.innerHTML = `<div class="detail-heading">${domain.name} Health<span>${domain.value}% healthy</span></div>`;
+  }
+  target.setAttribute('aria-describedby', 'detail-popup');
+  popup.hidden = false;
+  positionDetails();
+}
+const detailSelector = '.class-tag, .health-domain';
+document.addEventListener('pointerover', event => {
+  const target = event.target.closest(detailSelector);
+  if (event.pointerType === 'mouse' && target && !target.contains(event.relatedTarget)) showDetails(target);
+});
+document.addEventListener('pointerout', event => {
+  if (!pinned && popupTarget && popupTarget.contains(event.target) && !popupTarget.contains(event.relatedTarget)) closeDetails();
+});
+document.addEventListener('focusin', event => {
+  if (event.target.matches(detailSelector) && event.target.matches(':focus-visible')) showDetails(event.target);
+});
+document.addEventListener('focusout', event => {
+  if (!pinned && event.target === popupTarget) closeDetails();
+});
+document.addEventListener('click', event => {
+  const target = event.target.closest(detailSelector);
+  if (!target) return;
+  if (popupTarget === target && pinned) closeDetails();
+  else showDetails(target, true);
+});
+document.addEventListener('pointerdown', event => {
+  if (!event.target.closest(detailSelector)) closeDetails();
+});
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape') closeDetails();
+});
+window.addEventListener('resize', positionDetails);
+window.addEventListener('scroll', closeDetails, true);
+
+// Touch-and-hold reveals a domain without interfering with scrolling.
+let holdTimer;
+let holdOrigin;
+let heldTarget = null;
+$('#health-grid').addEventListener('pointerdown', event => {
+  if (event.pointerType === 'mouse') return;
+  const target = event.target.closest('.health-domain');
+  if (!target) return;
+  clearTimeout(holdTimer);
+  heldTarget = null;
+  holdOrigin = { x: event.clientX, y: event.clientY };
+  holdTimer = setTimeout(() => {
+    heldTarget = target;
+    showDetails(target, true);
+    dismissTimer = setTimeout(closeDetails, 4000);
+  }, 450);
+});
+$('#health-grid').addEventListener('pointermove', event => {
+  if (holdOrigin && Math.hypot(event.clientX - holdOrigin.x, event.clientY - holdOrigin.y) > 10) clearTimeout(holdTimer);
+});
+for (const type of ['pointerup', 'pointercancel', 'pointerleave']) {
+  $('#health-grid').addEventListener(type, () => {
+    clearTimeout(holdTimer);
+    holdOrigin = null;
+  });
+}
+$('#health-grid').addEventListener('click', event => {
+  if (heldTarget && heldTarget.contains(event.target)) {
+    event.stopPropagation();
+    event.preventDefault();
+  }
+  heldTarget = null;
+});
+$('#health-grid').addEventListener('contextmenu', event => event.preventDefault());
+
+let toastTimer;
+function toast(message) {
+  $('#toast').textContent = message;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { $('#toast').textContent = ''; }, 4000);
+}
+document.addEventListener('click', event => {
+  const button = event.target.closest('[data-complete]');
+  if (!button) return;
+  const quest = quests.splice(Number(button.dataset.complete), 1)[0];
+  const entry = classes[quest.classId];
+  const skill = entry.skills.find(skill => skill.name === (quest.skill || 'General'));
+  skill.xp += quest.xp;
+  entry.xp += quest.xp;
+  let leveled = false;
+  while (entry.xp >= entry.max) {
+    entry.xp -= entry.max;
+    entry.level++;
+    entry.max += 200;
+    leveled = true;
+  }
+  closeDetails();
+  renderClasses();
+  renderClassCards();
+  renderQuests();
+  saveState();
+  toast(`${quest.title} complete! +${quest.xp} ${entry.name} XP${leveled ? ' | Level up!' : ''}`);
+  const next = location.hash === '#/home' || !location.hash ? $('#home-quest-list .complete-button') || $('.text-link') : $('#quest-list .complete-button') || $('#add-quest');
+  next.focus({ preventScroll: true });
+});
+const dialog = $('#quest-dialog');
+$('#add-quest').addEventListener('click', () => {
+  $('[name=deadline]').value = localDateValue(new Date(dayDeadline(1)));
+  $('[name=deadline]').setCustomValidity('');
+  updateQuestOptions();
+  dialog.showModal();
+});
+$('#cancel').addEventListener('click', () => dialog.close());
+$('#quest-form').addEventListener('submit', event => {
+  event.preventDefault();
+  const form = new FormData(event.target);
+  const title = form.get('title').trim();
+  if (!title) {
+    $('[name=title]').setCustomValidity('Enter a quest objective.');
+    $('[name=title]').reportValidity();
+    return;
+  }
+  const size = form.get('size');
+  const reward = questSizes[size];
+  if (!reward) return;
+  const classId = Number(form.get('classId'));
+  if (!classes[classId]) return;
+  const skill = form.get('skill');
+  if (!classes[classId].skills.some(entry => entry.name === skill)) return;
+  const deadline = deadlineForDate(form.get('deadline'));
+  if (!Number.isFinite(deadline)) {
+    $('[name=deadline]').setCustomValidity('Enter a valid date.');
+    $('[name=deadline]').reportValidity();
+    return;
+  }
+  const noDamage = form.get('noDamage') === 'on';
+  quests.push({ title, classId, skill, deadline, domain: domainForClass(classId), size, xp: reward.xp, noDamage, rate: noDamage ? 0 : reward.rate });
+  dialog.close();
+  event.target.reset();
+  updateSkillOptions();
+  updateQuestOptions();
+  renderQuests();
+  saveState();
+  toast('Quest added. Your next step is ready.');
+});
+$('[name=title]').addEventListener('input', event => event.target.setCustomValidity(''));
+$('#quest-size-options').innerHTML = Object.entries(questSizes).map(([key, size]) => `
+  <label class="size-option">
+    <input type="radio" name="size" value="${key}" ${key === 'medium' ? 'checked' : ''} required>
+    <span class="size-card"><strong>${size.label}</strong><span>${size.xp} XP</span><small data-size-damage="${key}">&minus;${size.rate}/day</small></span>
+  </label>`).join('');
+function populateQuestClasses() {
+  const selected = $('#class-select').value;
+  $('#class-select').innerHTML = classes.map((entry, index) => `<option value="${index}">${escapeHTML(entry.name)}</option>`).join('');
+  if (classes[Number(selected)]) $('#class-select').value = selected;
+}
+populateQuestClasses();
+function updateQuestOptions() {
+  $('#quest-domain').textContent = domainForClass(Number($('#class-select').value));
+  const noDamage = $('#no-damage').checked;
+  for (const [key, size] of Object.entries(questSizes)) {
+    $('[data-size-damage="' + key + '"]').textContent = noDamage ? 'No damage' : '-' + size.rate + '/day';
+  }
+  $('#size-help').textContent = noDamage
+    ? 'XP on completion. This quest never deals overdue damage.'
+    : 'XP on completion. Health damage per day after the deadline.';
+}
+function updateSkillOptions() {
+  const entry = classes[Number($('#class-select').value)];
+  $('#skill-select').innerHTML = entry.skills.map(skill =>
+    `<option value="${escapeHTML(skill.name)}">${escapeHTML(skill.name)}</option>`).join('');
+  $('#skill-select').value = 'General';
+}
+$('#class-select').addEventListener('change', () => {
+  updateSkillOptions();
+  updateQuestOptions();
+});
+$('[name=deadline]').addEventListener('input', event => event.target.setCustomValidity(''));
+$('#no-damage').addEventListener('change', updateQuestOptions);
+
+function renderProfile() {
+  const name = [profile.firstName, profile.lastName].filter(Boolean).join(' ') || 'Adventurer';
+  $('#display-name').textContent = name;
+  $('#sidebar-name').textContent = name;
+  $('#avatar').textContent = (Array.from(profile.firstName)[0] || 'A').toUpperCase();
+  const details = [profile.pronouns, profile.location].filter(Boolean).join(' / ');
+  $('#profile-details').hidden = !details && !profile.bio;
+  $('#profile-details').innerHTML = (details ? '<p>' + escapeHTML(details) + '</p>' : '') +
+    (profile.bio ? '<p class="profile-bio">' + escapeHTML(profile.bio) + '</p>' : '');
+}
+function fillProfileForm() {
+  for (const [key, value] of Object.entries(profile)) $('#about-form [name="' + key + '"]').value = value;
+}
+$('#about-form').addEventListener('submit', event => {
+  event.preventDefault();
+  const data = new FormData(event.target);
+  const name = data.get('firstName').trim();
+  if (!name) {
+    $('#about-form [name="firstName"]').setCustomValidity('Enter your first name.');
+    $('#about-form [name="firstName"]').reportValidity();
+    return;
+  }
+  for (const key of Object.keys(profile)) profile[key] = data.get(key).trim();
+  renderProfile();
+  if (saveState()) toast('Profile saved. Your home screen is updated.');
+});
+$('#about-form [name="firstName"]').addEventListener('input', event => event.target.setCustomValidity(''));
+
+function renderClassCards() {
+  $('#class-cards').innerHTML = classes.map((entry, index) => {
+    const totalXP = entry.skills.reduce((sum, skill) => sum + skill.xp, 0);
+    const active = quests.filter(quest => quest.classId === index).length;
+    return `<article class="class-card" style="--color:${entry.color};--tint:${entry.tint}">
+      <header class="card-heading"><h2>${escapeHTML(entry.name)}</h2><span class="level-badge">Level ${entry.level}</span></header>
+      <p class="class-domain">${entry.domain} domain</p>
+      <p class="class-summary">${escapeHTML(entry.summary || 'Grow through the skills you practice and the quests you complete.')}</p>
+      <p class="class-stats">${totalXP.toLocaleString()} total XP &middot; ${active} active quest${active === 1 ? '' : 's'} &middot; ${entry.skills.length} skill${entry.skills.length === 1 ? '' : 's'}</p>
+      <div class="xp-label"><b>${entry.xp} / ${entry.max} class XP</b><span>${entry.max - entry.xp} to next level</span></div>
+      <div class="bar"><span style="width:${entry.xp / entry.max * 100}%"></span></div>
+      <h3 class="skills-heading" id="skills-label-${index}">Skills</h3>
+      <ul class="skill-list" tabindex="0" aria-labelledby="skills-label-${index}">
+        ${entry.skills.map(skill => {
+          const progress = skillProgress(skill.xp);
+          return `<li class="skill-row"><div class="skill-name"><strong>${escapeHTML(skill.name)}</strong><span>Level ${progress.level}</span></div>
+            <div class="xp-label"><span>${progress.xp} / ${progress.next} XP</span><span>${progress.next - progress.xp} to next level</span></div>
+            <div class="bar" role="progressbar" aria-label="${escapeHTML(skill.name)} experience" aria-valuenow="${progress.xp}" aria-valuemin="0" aria-valuemax="${progress.next}"><span style="width:${progress.xp / progress.next * 100}%"></span></div></li>`;
+        }).join('')}
+      </ul>
+      <form class="new-skill-form" data-class-id="${index}"><label class="sr-only" for="new-skill-${index}">New skill for ${escapeHTML(entry.name)}</label><input id="new-skill-${index}" name="skillName" placeholder="New skill name" maxlength="50" required><button type="submit" class="small-button">+ Add skill</button></form>
+    </article>`;
+  }).join('');
+}
+$('#class-cards').addEventListener('input', event => {
+  if (event.target.name === 'skillName') event.target.setCustomValidity('');
+});
+$('#class-cards').addEventListener('submit', event => {
+  const form = event.target.closest('.new-skill-form');
+  if (!form) return;
+  event.preventDefault();
+  const entry = classes[Number(form.dataset.classId)];
+  const input = form.querySelector('[name="skillName"]');
+  const name = input.value.trim();
+  if (!name || entry.skills.some(skill => skill.name.toLowerCase() === name.toLowerCase())) {
+    input.setCustomValidity(name ? 'That skill already exists in this class.' : 'Enter a skill name.');
+    input.reportValidity();
+    return;
+  }
+  entry.skills.push({ name, xp: 0 });
+  const selectedClass = Number($('#class-select').value);
+  const selectedSkill = $('#skill-select').value;
+  renderClassCards();
+  if (classes[selectedClass] === entry) {
+    updateSkillOptions();
+    $('#skill-select').value = selectedSkill;
+  }
+  saveState();
+  toast(name + ' added to ' + entry.name + '.');
+  const list = $('#class-cards .class-card:nth-child(' + (classes.indexOf(entry) + 1) + ') .skill-list');
+  list.scrollTop = list.scrollHeight;
+  $('#new-skill-' + classes.indexOf(entry)).focus({ preventScroll: true });
+});
+const classDialog = $('#class-dialog');
+function newClassDomain() {
+  const category = $('#new-class-category').value;
+  return category === 'general' ? $('#general-domain').value : { professional: 'Monetary', artistic: 'Mental', personal: 'Mental' }[category];
+}
+function updateNewClassDomain() {
+  $('#general-domain-field').hidden = $('#new-class-category').value !== 'general';
+  $('#new-class-domain').textContent = newClassDomain();
+}
+$('#new-class-category').addEventListener('change', updateNewClassDomain);
+$('#general-domain').addEventListener('change', updateNewClassDomain);
+$('#add-class').addEventListener('click', () => {
+  $('#class-form').reset();
+  $('#class-form [name="className"]').setCustomValidity('');
+  updateNewClassDomain();
+  classDialog.showModal();
+});
+$('#cancel-class').addEventListener('click', () => classDialog.close());
+$('#class-form [name="className"]').addEventListener('input', event => event.target.setCustomValidity(''));
+$('#class-form').addEventListener('submit', event => {
+  event.preventDefault();
+  const data = new FormData(event.target);
+  const name = data.get('className').trim();
+  const input = $('#class-form [name="className"]');
+  if (!name || classes.some(entry => entry.name.toLowerCase() === name.toLowerCase())) {
+    input.setCustomValidity(name ? 'A class with this name already exists.' : 'Enter a class name.');
+    input.reportValidity();
+    return;
+  }
+  const domain = newClassDomain();
+  if (!['Mental','Monetary','Shelter','Physical'].includes(domain)) return;
+  classes.push({ name, category: data.get('category'), domain, summary: data.get('summary').trim(), level: 1, xp: 0, max: 500, color: '#637b56', tint: '#e9eee3', skills: [{ name: 'General', xp: 0 }] });
+  classDialog.close();
+  renderClasses();
+  renderClassCards();
+  populateQuestClasses();
+  updateSkillOptions();
+  updateQuestOptions();
+  saveState();
+  toast(name + ' created with the General skill.');
+});
+
+const pages = { home: 'Home', about: 'About', classes: 'Classes', quests: 'Quests' };
+function showPage(focus = false) {
+  const key = location.hash.replace(/^#\//, '') || 'home';
+  const page = Object.hasOwn(pages, key) ? key : 'home';
+  closeDetails();
+  document.querySelectorAll('.page').forEach(section => { section.hidden = section.id !== 'page-' + page; });
+  document.querySelectorAll('.nav a').forEach(link => {
+    const active = link.dataset.page === page;
+    link.classList.toggle('active', active);
+    if (active) link.setAttribute('aria-current', 'page');
+    else link.removeAttribute('aria-current');
+  });
+  $('#page-name').textContent = pages[page];
+  document.title = 'Quest | ' + pages[page];
+  if (page === 'classes') renderClassCards();
+  if (page === 'quests') renderQuests();
+  if (focus) {
+    window.scrollTo(0, 0);
+    const heading = page === 'home' ? $('#display-name') : $('#page-' + page + ' h1');
+    heading.setAttribute('tabindex', '-1');
+    heading.focus({ preventScroll: true });
+  }
+}
+window.addEventListener('hashchange', () => showPage(true));
+fillProfileForm();
+renderProfile();
+renderClassCards();
+if (!storageAvailable) $('#storage-note').textContent = 'Browser storage is unavailable. Changes last until reload.';
+showPage();
+
+updateSkillOptions();
+updateQuestOptions();
+renderHealth();
+renderClasses();
+renderQuests();
+
+  </script>
+</body>
+</html>
