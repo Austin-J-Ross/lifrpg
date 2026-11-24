@@ -1,0 +1,56 @@
+/* One viewport-positioned popup for both types of details. */
+.detail-popup {
+  position: fixed;
+  z-index: 20;
+  width: 270px;
+  max-width: calc(100vw - 24px);
+  padding: 15px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: 0 8px 28px #27332220;
+  pointer-events: none;
+}
+.detail-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  font-size: 12px;
+  font-weight: 650;
+}
+.detail-heading span {
+  flex-shrink: 0;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 400;
+}
+.xp-label {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin-bottom: 9px;
+  color: var(--muted);
+  font-size: 10px;
+}
+.xp-label b {
+  color: var(--color);
+  font-weight: 600;
+}
+.bar {
+  height: 5px;
+  border-radius: 5px;
+  background: #e9ebe2;
+  overflow: hidden;
+}
+.bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color);
+}
+.health-detail .detail-heading {
+  margin: 0;
+}

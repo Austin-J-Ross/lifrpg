@@ -1,0 +1,76 @@
+/* Dialog and feedback */
+dialog {
+  width: min(420px, calc(100vw - 32px));
+  max-height: calc(100dvh - 40px);
+  overflow: auto;
+  padding: 26px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--paper);
+  color: var(--ink);
+}
+dialog::backdrop {
+  background: #20271f88;
+}
+dialog h2 {
+  margin-bottom: 22px;
+}
+dialog label {
+  display: block;
+  margin: 15px 0;
+  font-size: 12px;
+}
+dialog input,
+dialog select {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  margin-top: 7px;
+  padding: 10px;
+  border: 1px solid #d8dbce;
+  border-radius: 6px;
+  background: var(--surface);
+  color: inherit;
+}
+.form-note {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+}
+.actions button {
+  min-height: 40px;
+  padding: 9px 15px;
+  border: 1px solid #d8dbce;
+  border-radius: 6px;
+  background: var(--surface);
+}
+.actions .primary {
+  background: var(--green);
+  color: white;
+  border-color: var(--green);
+}
+#toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  padding: 13px 20px;
+  border-radius: 9px;
+  background: #303d2d;
+  color: white;
+  box-shadow: 0 5px 25px #0002;
+  font-size: 12px;
+  line-height: 1.5;
+  z-index: 30;
+}
+#toast:empty {
+  display: none;
+}

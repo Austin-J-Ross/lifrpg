@@ -1,0 +1,52 @@
+@import './base.css';
+@import './shell.css';
+@import './character.css';
+@import './details.css';
+@import './quests.css';
+@import './dialogs.css';
+@import './responsive.css';
+@import './domain-forms.css';
+@import './pages.css';
+@import './character-sheet.css';
+@media (max-width: 680px) {
+  .sidebar-bottom {
+    display: block;
+    padding: 10px 0 0;
+  }
+  .sidebar-bottom > small,
+  .sidebar-bottom > p,
+  .user > div {
+    display: none;
+  }
+  .user {
+    margin: 8px 10px;
+  }
+}
+
+.storage-warning {
+  margin-top: 16px;
+  padding: 12px;
+  border: 1px solid #cfaa7d;
+  border-radius: 8px;
+  background: #fff4df;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.storage-warning a {
+  text-decoration: underline;
+}
+.transfer-panel {
+  margin-top: 24px;
+}
+.transfer-panel .small-button {
+  margin: 0 10px 12px 0;
+}
+.import-label {
+  display: block;
+  font-size: 12px;
+  line-height: 2;
+}
+.import-label input {
+  display: block;
+  max-width: 100%;
+}

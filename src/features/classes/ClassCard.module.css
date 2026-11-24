@@ -1,0 +1,114 @@
+.card {
+  min-width: 0;
+  padding: 22px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+@media (max-width: 680px) {
+  .card {
+    padding: 20px 16px;
+  }
+}
+.card-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 12px;
+}
+.card-heading h2 {
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+.level-badge {
+  flex-shrink: 0;
+  padding: 4px 7px;
+  background: var(--tint);
+  color: var(--color);
+  border-radius: 5px;
+  font-size: 10px;
+}
+.class-domain {
+  margin-top: 8px;
+  color: var(--color);
+  font-size: 11px;
+}
+.class-summary {
+  margin: 13px 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.class-stats {
+  margin-bottom: 17px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.6;
+}
+.skills-heading {
+  margin: 20px 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.skill-list {
+  max-height: 185px;
+  min-height: 80px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd1c3 transparent;
+  padding: 0 10px 0 0;
+  margin: 0;
+  list-style: none;
+}
+.skill-row {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.skill-row:first-child {
+  padding-top: 2px;
+}
+.skill-name {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 9px;
+  font-size: 12px;
+}
+.skill-name strong {
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.skill-name > span {
+  flex-shrink: 0;
+  color: var(--color);
+  font-size: 10px;
+}
+.new-skill-form {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  margin-top: 12px;
+}
+.new-skill-form input {
+  margin: 0;
+  font-size: 11px;
+  flex: 1;
+}
+
+.new-skill-form input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid #d8dbce;
+  border-radius: 6px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 11px;
+}

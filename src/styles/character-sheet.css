@@ -1,0 +1,128 @@
+.character-screen {
+  background: radial-gradient(ellipse at 55% 0%, #302a22, #141418 65%);
+  color: #f2e8d7;
+}
+
+.character-screen .sidebar {
+  background: linear-gradient(150deg, #292724, #161618 65%);
+  border-inline-end: 1px solid #625640;
+}
+
+.character-screen .nav a:is(.active, :hover) {
+  color: #ffe2a0;
+  background: linear-gradient(#484031, #2a241e);
+  box-shadow: inset 0 0 0 1px #786447;
+}
+
+.character-screen main {
+  width: 100%;
+  max-width: 1120px;
+  min-width: 0;
+  margin-inline: auto;
+  padding: 24px clamp(16px, 4vw, 54px);
+}
+
+.character-screen .storage-warning {
+  max-width: 480px;
+  margin: 0 auto 12px;
+  color: #fff0ce;
+  background: #31271c;
+  border-color: #8b7046;
+}
+
+.character-sheet {
+  max-width: 480px;
+  margin-inline: auto;
+  padding: 9px;
+  border: 1px solid #9d8761;
+  border-radius: 9px;
+  background: linear-gradient(145deg, #454039, #262527 42%, #32302e);
+  box-shadow:
+    inset 0 0 0 2px #18181a,
+    inset 0 0 0 3px #625745,
+    0 12px 32px #0007;
+}
+
+.character-sheet .profile-header {
+  grid-template-columns: minmax(0, 1fr);
+  padding: 10px 15px;
+  margin-bottom: 10px;
+  border: 1px solid #716045;
+  border-radius: 4px;
+  background: linear-gradient(#282522, #131417);
+}
+
+.character-sheet h1 {
+  font-family: Georgia, serif;
+  font-weight: 500;
+  letter-spacing: normal;
+  color: #f3d89e;
+}
+
+.full-body-portrait {
+  position: relative;
+  display: grid;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  border: 3px ridge #82735b;
+  border-radius: 5px;
+  background: radial-gradient(
+    ellipse at 50% 35%,
+    #383326,
+    #18191b 66%,
+    #101113
+  );
+  box-shadow: inset 0 0 24px #0009;
+}
+
+.full-body-portrait img {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.full-body-portrait #portrait-quest-badge {
+  top: 8px;
+  left: 8px;
+  width: 44px;
+  height: 44px;
+  box-shadow: 0 2px 8px #000b;
+}
+
+.full-body-portrait #portrait-quest-count {
+  font-size: 15px;
+}
+
+.portrait-placeholder {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 10px;
+  margin: 14px;
+  border: 1px dashed #78684e;
+  border-radius: 3px;
+  color: #e0c796;
+  text-align: center;
+}
+
+.portrait-placeholder:hover {
+  background: #efd38e0d;
+}
+
+.portrait-placeholder span {
+  font-size: 36px;
+  line-height: 1;
+}
+
+@media (max-width: 420px) {
+  .character-sheet .profile-header {
+    padding-inline: 8px;
+  }
+}
+
+@media (max-width: 680px) {
+  .character-screen .sidebar-bottom {
+    display: none;
+  }
+}

@@ -1,0 +1,142 @@
+/* Independent pages and profile settings. */
+#display-name {
+  overflow-wrap: anywhere;
+}
+.page h1:focus {
+  outline: none;
+}
+.page-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 28px 0 24px;
+}
+.page-heading h1 {
+  font-size: 28px;
+  letter-spacing: -0.8px;
+}
+.page-heading p {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.profile-details {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.profile-bio {
+  margin-top: 7px;
+  max-width: 640px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.text-link {
+  color: var(--green);
+  font-size: 11px;
+  white-space: nowrap;
+}
+.surface {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 24px;
+}
+.form-panel {
+  max-width: 720px;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 20px;
+}
+.form-panel label {
+  display: block;
+  margin-bottom: 20px;
+  font-size: 12px;
+}
+.form-panel input,
+.form-panel textarea,
+dialog textarea {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 10px;
+  margin-top: 7px;
+  border: 1px solid #d8dbce;
+  border-radius: 6px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+}
+textarea {
+  resize: vertical;
+}
+.optional {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 400;
+  margin-left: 5px;
+}
+.class-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.small-button {
+  padding: 10px;
+  border: 1px solid #d8dbce;
+  border-radius: 6px;
+  background: #edf0e6;
+  color: var(--green);
+  white-space: nowrap;
+  font-size: 10px;
+}
+.progression-note {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+@media (max-width: 1000px) {
+  .class-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 680px) {
+  .nav {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 3px;
+  }
+  .nav a {
+    padding: 8px 4px;
+    gap: 5px;
+  }
+  .nav a > span {
+    width: auto;
+  }
+  .page-heading h1 {
+    font-size: 25px;
+  }
+  .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .surface {
+    padding: 20px 16px;
+  }
+}

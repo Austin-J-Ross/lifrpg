@@ -1,0 +1,54 @@
+.item {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 5px 8px;
+  padding: 19px 0;
+  border-top: 1px solid var(--line);
+}
+.overdue {
+  margin: 4px -10px;
+  padding: 16px 10px;
+  border: 1px solid #f1e0d6;
+  border-radius: 8px;
+  background: #fcf3ee;
+}
+.copy {
+  padding-top: 5px;
+  min-width: 0;
+}
+.copy h3 {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.className {
+  margin-top: 5px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.reward {
+  padding-top: 8px;
+  white-space: nowrap;
+  font-size: 11px;
+  color: #60764e;
+  font-weight: 650;
+}
+.meta {
+  grid-column: 2/-1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 6px 18px;
+  margin-top: 9px;
+  font-size: 10px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.deadline {
+  color: #997045;
+}
+.damage {
+  color: #ad6046;
+}

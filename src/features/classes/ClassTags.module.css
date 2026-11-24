@@ -1,0 +1,35 @@
+.class-tags {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.class-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 29px;
+  padding: 5px 9px;
+  border: 1px solid var(--tag-border);
+  border-radius: 6px;
+  background: var(--tint);
+  color: var(--color);
+  font-size: 11px;
+  line-height: 1.4;
+}
+.class-tag b {
+  padding-left: 7px;
+  border-left: 1px solid var(--tag-border);
+  font-size: 10px;
+}
+.class-tag:hover,
+.class-tag[aria-expanded='true'] {
+  border-color: var(--color);
+}
+
+@media (max-width: 680px) {
+  .class-tag {
+    font-size: 10px;
+    min-height: 30px;
+  }
+}
