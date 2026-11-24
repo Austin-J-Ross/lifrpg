@@ -1,0 +1,264 @@
+.layout {
+  display: grid;
+  gap: 14px;
+  max-width: 680px;
+  margin-inline: auto;
+}
+
+.portraitSection {
+  display: grid;
+  justify-items: center;
+  gap: 9px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.portrait {
+  position: relative;
+  width: fit-content;
+  max-width: min(100%, 320px);
+  border: 2px ridge #82735b;
+  border-radius: 5px;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 50% 40%, #3a2c24, #161418 74%);
+}
+
+.portrait img {
+  display: block;
+  max-width: 100%;
+  max-height: 510px;
+}
+
+.emptyPortrait {
+  width: min(68vw, 270px);
+  aspect-ratio: 2 / 3;
+}
+
+.photoLink {
+  color: var(--green);
+  padding: 5px;
+  text-decoration: underline;
+}
+
+.hotspot {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--width);
+  height: var(--height);
+  display: grid;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 0;
+  background: transparent;
+  color: #ffe1a3;
+}
+
+.hotspot span {
+  padding: 4px 6px;
+  border: 1px solid #8f744b;
+  border-radius: 4px;
+  background: #211a16e8;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.hotspot:is(:hover, :focus-visible) {
+  border-color: #e5bc77;
+  background: #bd925b26;
+  outline-offset: -2px;
+}
+
+.hotspot[data-part='Head'] {
+  --x: 35%;
+  --y: 3%;
+  --width: 30%;
+  --height: 21%;
+}
+
+.hotspot[data-part='Torso'] {
+  --x: 36%;
+  --y: 24%;
+  --width: 28%;
+  --height: 33%;
+}
+
+.hotspot[data-part$='arm'] {
+  --y: 26%;
+  --width: 29%;
+  --height: 34%;
+}
+
+.hotspot[data-part='Right arm'] {
+  --x: 6%;
+}
+.hotspot[data-part='Left arm'] {
+  --x: 65%;
+}
+
+.hotspot[data-part$='leg'] {
+  --y: 60%;
+  --width: 28%;
+  --height: 38%;
+}
+
+.hotspot[data-part='Right leg'] {
+  --x: 20%;
+}
+.hotspot[data-part='Left leg'] {
+  --x: 52%;
+}
+
+.sectionHeading,
+.statusHeading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.statGroups {
+  display: grid;
+  gap: 18px;
+  margin-top: 12px;
+}
+
+.statsTitle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.editStats {
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: var(--green);
+  font-size: 12px;
+  text-decoration: underline;
+}
+
+.unitSwitch {
+  display: inline-grid;
+  justify-items: center;
+  align-content: center;
+  gap: 5px;
+  min-width: 64px;
+  min-height: 44px;
+  padding: 4px 6px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.unitSwitch span {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  border: 1px solid #a78b5a;
+  border-radius: 999px;
+  background: var(--metal-inset);
+}
+
+.unitSwitch span::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #c8b38a;
+  transition: transform 160ms ease;
+}
+
+.unitSwitch[aria-checked='true'] span {
+  background: #584328;
+}
+
+.unitSwitch[aria-checked='true'] span::before {
+  transform: translateX(18px);
+  background: var(--green);
+}
+
+.statColumns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 14px;
+}
+
+.statGroups h3,
+.fieldset legend {
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.readings {
+  margin: 5px 0 0;
+}
+
+.readings div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+}
+
+.readings dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.readings dt,
+.emptyLog,
+.statusHeading time {
+  color: var(--muted);
+}
+
+.fieldset {
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.fieldset .statColumns {
+  margin-top: 8px;
+  row-gap: 12px;
+}
+
+.fieldset label {
+  margin: 0;
+}
+
+.emptyLog,
+.statuses {
+  margin-top: 10px;
+}
+
+.statuses {
+  padding: 0;
+  list-style: none;
+}
+
+.statuses li {
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+
+.statusHeading time {
+  font-size: 12px;
+}
+
+.statuses p {
+  margin-top: 6px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

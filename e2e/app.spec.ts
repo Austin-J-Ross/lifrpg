@@ -8,6 +8,94 @@ const legacy = JSON.parse(
 );
 import fs from 'node:fs/promises';
 const origin = 'http://quest.local';
+test('saves mental stats and a log with one sentiment per entry', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(origin + '/#/home');
+  await page
+    .getByRole('navigation')
+    .getByRole('link', { name: 'Mental Stats' })
+    .click();
+  await page.getByRole('button', { name: 'Log', exact: true }).click();
+  const form = page.getByRole('dialog', { name: 'Log a mental status' });
+  await expect(form.getByRole('radio')).toHaveCount(3);
+  await expect(form.getByRole('radio', { name: 'Neutral' })).toBeChecked();
+  await form.getByRole('radio', { name: 'Positive' }).check();
+  await expect(form.getByRole('radio', { name: 'Neutral' })).not.toBeChecked();
+  await form.getByLabel('Title', { exact: true }).fill('Reading session');
+  await form.getByLabel('Description').fill('Finished a chapter.');
+  await form.getByRole('button', { name: 'Save log' }).click();
+  await page.getByRole('button', { name: 'Edit mental stats' }).click();
+  const editor = page.getByRole('dialog', { name: 'Edit mental stats' });
+  await editor.getByLabel('Reading Hours', { exact: true }).fill('1.5 h');
+  await editor.getByRole('button', { name: 'Save stats' }).click();
+  await page.reload();
+  await expect(
+    page.getByRole('region', { name: 'Stats', exact: true }).getByText('1.5 h'),
+  ).toBeVisible();
+  const log = page.getByRole('region', { name: 'Log', exact: true });
+  await expect(log.getByRole('listitem')).toContainText('Reading session');
+  await expect(log.getByRole('listitem')).toContainText('positive');
+  await expect(log.getByRole('listitem')).toContainText('Finished a chapter.');
+});
+
+test('logs a portrait status and saves physical stats across reloads', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.clock.setFixedTime(new Date('2026-11-24T15:00:00Z'));
+  await page.goto(origin + '/#/home');
+  await page
+    .getByRole('navigation')
+    .getByRole('link', { name: 'Phys. Stats' })
+    .click();
+  await expect(
+    page.getByRole('heading', { name: 'Phys. Stats' }),
+  ).toBeVisible();
+  const portrait = page.getByRole('region', { name: 'Body status portrait' });
+  await expect(portrait.getByRole('button')).toHaveText([
+    'Head',
+    'Torso',
+    'Right arm',
+    'Left arm',
+    'Right leg',
+    'Left leg',
+  ]);
+  await portrait
+    .getByRole('button', { name: 'Right arm', exact: true })
+    .click();
+  const dialog = page.getByRole('dialog', { name: 'Right arm status' });
+  await dialog.getByLabel('Status message').fill('Sore after practice.');
+  await dialog.getByRole('button', { name: 'Log status' }).click();
+  await page.getByRole('button', { name: 'Edit stats' }).click();
+  const editor = page.getByRole('dialog', { name: 'Edit physical stats' });
+  await editor.getByLabel('Height', { exact: true }).fill('175 cm');
+  await editor.getByLabel('Weight', { exact: true }).fill('72 kg');
+  await editor.getByLabel('Strength (arms)', { exact: true }).fill('8 reps');
+  await editor.getByRole('button', { name: 'Save stats' }).click();
+  await page.reload();
+  const stats = page.getByRole('region', { name: 'Stats', exact: true });
+  await expect(stats.getByText('8 reps')).toBeVisible();
+  const units = stats.getByRole('switch', { name: 'Metric units' });
+  await expect(units).toHaveText('Imperial');
+  await expect(stats.getByText('5 ft 8.9 in')).toBeVisible();
+  await expect(stats.getByText('158.7 lb')).toBeVisible();
+  await units.click();
+  await expect(units).toHaveText('Metric');
+  await expect(stats.getByText('175 cm')).toBeVisible();
+  await expect(stats.getByText('72 kg')).toBeVisible();
+  await page.reload();
+  await expect(units).toHaveAttribute('aria-checked', 'true');
+  const log = page.getByRole('region', { name: 'Status log' });
+  await expect(log.getByRole('listitem')).toContainText('Right arm');
+  await expect(log.getByRole('listitem')).toContainText('Sore after practice.');
+  await expect(log.locator('time')).toHaveAttribute(
+    'datetime',
+    '2026-11-24T15:00:00.000Z',
+  );
+});
+
 test('opens a health tray with a meter and static metric labels', async ({
   page,
 }) => {

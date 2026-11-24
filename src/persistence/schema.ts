@@ -9,6 +9,19 @@ import {
 } from '../domain/models';
 import { questSizeKeys } from '../domain/definitions';
 import {
+  mentalStatKeys,
+  sentiments,
+  type MentalProfile,
+  type MentalStats,
+} from '../domain/mental';
+import {
+  bodySections,
+  physicalStatKeys,
+  unitSystems,
+  type PhysicalProfile,
+  type PhysicalStats,
+} from '../domain/physical';
+import {
   measurementKinds,
   validMeasurementDate,
   validMeasurementValue,
@@ -66,6 +79,63 @@ function profile(value: unknown): Profile {
     ...(portrait ? { portrait } : {}),
   };
 }
+function physicalProfile(value: unknown): PhysicalProfile {
+  const raw = record(value);
+  const fields = record(raw.stats);
+  const stats: PhysicalStats = {};
+  for (const key of physicalStatKeys) {
+    if (fields[key] === undefined) continue;
+    const field = text(fields[key], 80).trim();
+    if (field) stats[key] = field;
+  }
+  const statuses = array(raw.statuses).map((value) => {
+    const status = record(value);
+    const at = number(status.at);
+    if (!Number.isFinite(new Date(at).getTime()))
+      throw Error('Invalid body status date.');
+    return {
+      id: text(status.id, 160, true),
+      at,
+      section: oneOf(status.section, bodySections),
+      message: text(status.message, 500, true).trim(),
+    };
+  });
+  unique(statuses.map(({ id }) => id));
+  return {
+    stats,
+    statuses,
+    ...(raw.units === undefined
+      ? {}
+      : { units: oneOf(raw.units, unitSystems) }),
+  };
+}
+
+function mentalProfile(value: unknown): MentalProfile {
+  const raw = record(value);
+  const fields = record(raw.stats);
+  const stats: MentalStats = {};
+  for (const key of mentalStatKeys) {
+    if (fields[key] === undefined) continue;
+    const field = text(fields[key], 80).trim();
+    if (field) stats[key] = field;
+  }
+  const logs = array(raw.logs).map((value) => {
+    const entry = record(value);
+    const at = number(entry.at);
+    if (!Number.isFinite(new Date(at).getTime()))
+      throw Error('Invalid mental log date.');
+    return {
+      id: text(entry.id, 160, true),
+      at,
+      title: text(entry.title, 90, true).trim(),
+      description: text(entry.description, 500).trim(),
+      sentiment: oneOf(entry.sentiment, sentiments),
+    };
+  });
+  unique(logs.map(({ id }) => id));
+  return { stats, logs };
+}
+
 export function validateState(value: unknown): AppState {
   const saved = record(value);
   if (saved.version !== 2)
@@ -160,6 +230,12 @@ export function validateState(value: unknown): AppState {
     classes,
     quests,
     ...(measurements ? { measurements } : {}),
+    ...(saved.physical === undefined
+      ? {}
+      : { physical: physicalProfile(saved.physical) }),
+    ...(saved.mental === undefined
+      ? {}
+      : { mental: mentalProfile(saved.mental) }),
   };
 }
 export function decodeState(value: unknown): AppState {

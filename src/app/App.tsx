@@ -6,6 +6,8 @@ import { HomePage } from '../pages/HomePage';
 import { AboutPage } from '../pages/AboutPage';
 import { ClassesPage } from '../pages/ClassesPage';
 import { QuestsPage } from '../pages/QuestsPage';
+import { PhysicalStatsPage } from '../pages/PhysicalStatsPage';
+import { MentalStatsPage } from '../pages/MentalStatsPage';
 export function App({ demoState }: { demoState?: AppState }) {
   return (
     <AppProvider demoState={demoState}>
@@ -17,6 +19,8 @@ export function App({ demoState }: { demoState?: AppState }) {
             <Route path="about" element={<AboutPage />} />
             <Route path="classes" element={<ClassesPage />} />
             <Route path="quests" element={<QuestsPage />} />
+            <Route path="physical" element={<PhysicalStatsPage />} />
+            <Route path="mental" element={<MentalStatsPage />} />
             <Route path="*" element={<Navigate to="/home" replace />} />
           </Route>
         </Routes>

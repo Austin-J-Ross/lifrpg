@@ -1,5 +1,7 @@
 import type { Measurement } from './measurements';
 import type { QuestSize } from './definitions';
+import type { PhysicalProfile } from './physical';
+import type { MentalProfile } from './mental';
 
 export const domainNames = [
   'Shelter',
@@ -61,6 +63,8 @@ export interface AppState {
   classes: CharacterClass[];
   quests: Quest[];
   measurements?: Measurement[];
+  physical?: PhysicalProfile;
+  mental?: MentalProfile;
 }
 export function emptyState(): AppState {
   return {

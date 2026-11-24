@@ -14,8 +14,15 @@ import {
   skillXPForLevel,
 } from '../domain/progression';
 import { validateState } from '../persistence/schema';
+import type { BodyStatus, PhysicalStats, UnitSystem } from '../domain/physical';
+import type { MentalLogEntry, MentalStats } from '../domain/mental';
 export type Action =
   | { type: 'profile/save'; profile: Profile }
+  | { type: 'physical/stats-save'; stats: PhysicalStats }
+  | { type: 'physical/set-units'; units: UnitSystem }
+  | { type: 'physical/status-log'; status: BodyStatus }
+  | { type: 'mental/stats-save'; stats: MentalStats }
+  | { type: 'mental/log'; entry: MentalLogEntry }
   | {
       type: 'class/create';
       id: string;
@@ -60,6 +67,51 @@ export function reduceState(state: AppState, action: Action): AppState {
   switch (action.type) {
     case 'state/import':
       return validateState(action.state);
+    case 'mental/stats-save':
+      next = {
+        ...state,
+        mental: { stats: action.stats, logs: state.mental?.logs ?? [] },
+      };
+      break;
+    case 'mental/log':
+      next = {
+        ...state,
+        mental: {
+          stats: state.mental?.stats ?? {},
+          logs: [action.entry, ...(state.mental?.logs ?? [])],
+        },
+      };
+      break;
+    case 'physical/stats-save':
+      next = {
+        ...state,
+        physical: {
+          ...state.physical,
+          stats: action.stats,
+          statuses: state.physical?.statuses ?? [],
+        },
+      };
+      break;
+    case 'physical/set-units':
+      next = {
+        ...state,
+        physical: {
+          stats: state.physical?.stats ?? {},
+          statuses: state.physical?.statuses ?? [],
+          units: action.units,
+        },
+      };
+      break;
+    case 'physical/status-log':
+      next = {
+        ...state,
+        physical: {
+          ...state.physical,
+          stats: state.physical?.stats ?? {},
+          statuses: [action.status, ...(state.physical?.statuses ?? [])],
+        },
+      };
+      break;
     case 'profile/save': {
       const profile = Object.fromEntries(
         Object.entries(action.profile).map(([key, value]) => [

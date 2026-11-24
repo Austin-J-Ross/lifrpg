@@ -5,6 +5,8 @@ const pages = [
   ['home', 'Home', '▦'],
   ['classes', 'Classes', '♣'],
   ['quests', 'Quests', '⚑'],
+  ['physical', 'Phys. Stats', '♙'],
+  ['mental', 'Mental Stats', '◇'],
 ];
 export function AppLayout() {
   const location = useLocation();

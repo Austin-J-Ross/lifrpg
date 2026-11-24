@@ -1,0 +1,168 @@
+.layout {
+  display: grid;
+  gap: 14px;
+  max-width: 680px;
+  margin-inline: auto;
+}
+
+.brainBox {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+}
+
+.brainBox svg {
+  fill: none;
+  stroke: var(--green);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.brainBox button {
+  justify-content: center;
+  min-width: 80px;
+  min-height: 44px;
+}
+
+.statsTitle,
+.logHeading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.edit {
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: var(--green);
+  font-size: 12px;
+  text-decoration: underline;
+}
+
+.statGroup + .statGroup {
+  margin-top: 16px;
+}
+
+.statGroup h3,
+.fieldset legend {
+  color: var(--green);
+  font-size: 13px;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 14px;
+  margin: 5px 0 0;
+}
+
+.reading {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.reading dd {
+  margin: 0;
+}
+
+.reading dt,
+.note,
+.logs time {
+  color: var(--muted);
+}
+
+.note,
+.testLink {
+  display: block;
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.testLink {
+  color: var(--green);
+  text-decoration: underline;
+}
+
+.fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.editor .fieldset + .fieldset {
+  margin-top: 12px;
+}
+
+.editor .columns label {
+  margin: 5px 0;
+}
+
+.sentiments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+
+.sentiments label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  margin: 0;
+  text-transform: capitalize;
+}
+
+.sentiments label input {
+  width: auto;
+  margin: 0;
+  accent-color: var(--green);
+}
+
+.logs {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0;
+}
+
+.logs li {
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+
+.logHeading {
+  justify-content: space-between;
+}
+
+.logHeading span {
+  color: var(--muted);
+  text-transform: capitalize;
+  font-size: 12px;
+}
+
+.logHeading [data-sentiment='positive'] {
+  color: #a8c88f;
+}
+
+.logHeading [data-sentiment='negative'] {
+  color: #df9b91;
+}
+
+.logs time {
+  font-size: 11px;
+}
+
+.logs p {
+  margin-top: 5px;
+  white-space: pre-wrap;
+}
