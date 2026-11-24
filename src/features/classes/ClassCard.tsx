@@ -2,6 +2,7 @@ import { createId } from '../../domain/identity';
 import { useState, type CSSProperties, type FormEvent } from 'react';
 import type { CharacterClass } from '../../domain/models';
 import { useApp } from '../../state/AppProvider';
+import { isActiveQuest } from '../../state/reducer';
 import { skillProgress } from '../../domain/progression';
 import { ProgressBar } from '../../components/ui/ProgressBar';
 import { ClassForm } from './ClassForm';
@@ -15,7 +16,9 @@ export function ClassCard({ entry }: { entry: CharacterClass }) {
   const editingSkill = entry.skills.find(
     (skill) => skill.id === editingSkillId,
   );
-  const active = state.quests.filter((q) => q.classId === entry.id).length;
+  const active = state.quests.filter(
+    (q) => q.classId === entry.id && isActiveQuest(q),
+  ).length;
   function submit(e: FormEvent) {
     e.preventDefault();
     if (

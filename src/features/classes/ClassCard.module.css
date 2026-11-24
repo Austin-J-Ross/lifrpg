@@ -97,7 +97,6 @@
 }
 .new-skill-form input {
   margin: 0;
-  font-size: 11px;
   flex: 1;
 }
 
@@ -110,8 +109,7 @@
   border-radius: 6px;
   background: var(--paper);
   color: var(--ink);
-  font: inherit;
-  font-size: 11px;
+  font-size: var(--editable-control-font-size, 11px);
 }
 
 .edit-actions {

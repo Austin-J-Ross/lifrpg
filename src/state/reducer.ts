@@ -6,7 +6,12 @@ import type {
   Quest,
   QuestKind,
 } from '../domain/models';
-import { classDomain, questSizes, type QuestSize } from '../domain/definitions';
+import {
+  classDomain,
+  questSizeFor,
+  questSizes,
+  type QuestSize,
+} from '../domain/definitions';
 import {
   classProgress,
   MAX_CLASS_LEVEL,
@@ -50,7 +55,7 @@ export type Action =
       level: number;
     }
   | {
-      type: 'quest/create';
+      type: 'quest/create' | 'quest/edit';
       id: string;
       title: string;
       classId: string;
@@ -60,7 +65,7 @@ export type Action =
       kind?: QuestKind;
       noDamage: boolean;
     }
-  | { type: 'quest/complete'; id: string }
+  | { type: 'quest/complete'; id: string; at: number }
   | { type: 'state/import'; state: AppState };
 export function reduceState(state: AppState, action: Action): AppState {
   let next: AppState;
@@ -257,32 +262,59 @@ export function reduceState(state: AppState, action: Action): AppState {
       };
       break;
     }
-    case 'quest/create': {
+    case 'quest/create':
+    case 'quest/edit': {
+      const previous =
+        action.type === 'quest/edit'
+          ? state.quests.find(
+              (quest) => quest.id === action.id && isActiveQuest(quest),
+            )
+          : undefined;
+      if (action.type === 'quest/edit' && !previous)
+        throw Error('This quest is no longer active.');
       const size = questSizes[action.size];
       if (!size) throw Error('Choose a quest size.');
       const title = action.title.trim();
       if (!title) throw Error('Enter a quest objective.');
+      const sameSize =
+        previous &&
+        (previous.size ?? questSizeFor(previous.xp)) === action.size;
       const quest: Quest = {
         id: action.id,
         title,
         classId: action.classId,
         skillId: action.skillId,
         deadline: action.deadline,
-        xp: size.xp,
-        rate: action.noDamage ? 0 : size.rate,
+        xp: sameSize ? previous.xp : size.xp,
+        rate: action.noDamage
+          ? 0
+          : sameSize && !previous.noDamage
+            ? previous.rate
+            : size.rate,
         noDamage: action.noDamage,
         size: action.size,
         ...(action.kind && { kind: action.kind }),
       };
-      next = { ...state, quests: [...state.quests, quest] };
+      next = {
+        ...state,
+        quests: previous
+          ? state.quests.map((entry) =>
+              entry.id === previous.id ? quest : entry,
+            )
+          : [...state.quests, quest],
+      };
       break;
     }
     case 'quest/complete': {
-      const q = state.quests.find((q) => q.id === action.id);
+      const q = state.quests.find(
+        (q) => q.id === action.id && isActiveQuest(q),
+      );
       if (!q) return state;
       next = {
         ...state,
-        quests: state.quests.filter((quest) => quest.id !== q.id),
+        quests: state.quests.map((quest) =>
+          quest.id === q.id ? { ...quest, completedAt: action.at } : quest,
+        ),
         classes: state.classes.map((c) =>
           c.id === q.classId
             ? {
@@ -300,4 +332,6 @@ export function reduceState(state: AppState, action: Action): AppState {
   }
   return validateState(next);
 }
-export const activeQuestCount = (state: AppState) => state.quests.length;
+export const isActiveQuest = (quest: Quest) => quest.completedAt === undefined;
+export const activeQuestCount = (state: AppState) =>
+  state.quests.filter(isActiveQuest).length;

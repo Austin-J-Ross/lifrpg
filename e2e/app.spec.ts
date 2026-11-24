@@ -115,6 +115,11 @@ test('saves mental stats and a log with one sentiment per entry', async ({
     .click();
   await page.getByRole('button', { name: 'Log', exact: true }).click();
   const form = page.getByRole('dialog', { name: 'Log a mental status' });
+  await expect(form.getByLabel('Title', { exact: true })).toHaveCSS(
+    'font-size',
+    '16px',
+  );
+  await expect(form.getByLabel('Description')).toHaveCSS('font-size', '16px');
   await expect(form.getByRole('radio')).toHaveCount(3);
   await expect(form.getByRole('radio', { name: 'Neutral' })).toBeChecked();
   await form.getByRole('radio', { name: 'Positive' }).check();
@@ -298,6 +303,13 @@ test.describe('touch navigation', () => {
     await expect(rows).toHaveCount(1);
     await expect(rows.first()).toContainText('Plan a date night');
     await today.getByRole('button', { name: 'Add task' }).tap();
+    await expect(page.getByLabel('Quest objective')).toHaveCSS(
+      'font-size',
+      '16px',
+    );
+    await expect(
+      page.getByRole('combobox', { name: 'Type', exact: true }),
+    ).toHaveCSS('font-size', '16px');
     await page.getByLabel('Quest objective').fill('Take a walk');
     await page
       .getByRole('combobox', { name: 'Type', exact: true })
@@ -389,6 +401,20 @@ test('fresh profile, class, skill, quests, XP, counts and reload', async ({
   await page.getByRole('button', { name: '+ New quest', exact: true }).click();
   await page.getByLabel('Quest objective').fill('Read a story');
   await page.getByRole('button', { name: 'Create Quest', exact: true }).click();
+  await page
+    .getByRole('button', { name: 'Edit Read a story', exact: true })
+    .click();
+  const editQuest = page.getByRole('dialog', {
+    name: 'Edit quest',
+    exact: true,
+  });
+  await expect(editQuest.getByLabel('Quest objective')).toHaveValue(
+    'Read a story',
+  );
+  await editQuest.getByLabel('Quest objective').fill('Read another story');
+  await editQuest
+    .getByRole('button', { name: 'Save changes', exact: true })
+    .click();
   await expect(page.locator('#portrait-quest-count')).toHaveText('2');
   await page.reload();
   await expect(
@@ -416,12 +442,24 @@ test('fresh profile, class, skill, quests, XP, counts and reload', async ({
   await reward.getByRole('button', { name: 'Done', exact: true }).click();
   await expect(page.locator('#portrait-quest-count')).toHaveText('1');
   await expect(
-    page.getByRole('button', { name: 'Complete Read a story' }),
+    page.getByRole('button', { name: 'Complete Read another story' }),
   ).toBeFocused();
-  await page.getByRole('button', { name: 'Complete Read a story' }).click();
+  await page
+    .getByRole('button', { name: 'Complete Read another story' })
+    .click();
   await page.getByRole('button', { name: 'Confirm completion' }).click();
   await page.getByRole('button', { name: 'Done', exact: true }).click();
   await expect(page.locator('#portrait-quest-count')).toHaveText('0');
+  await page.reload();
+  const completedLog = page.getByRole('region', { name: /Completed quests/ });
+  await expect(completedLog.getByRole('listitem')).toHaveCount(2);
+  await expect(
+    completedLog.getByText('Write a scene', { exact: true }),
+  ).toBeVisible();
+  await expect(
+    completedLog.getByText('Read another story', { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Complete / })).toHaveCount(0);
   const saved = await page.evaluate(() =>
     JSON.parse(localStorage.getItem('quest-character-v2')!),
   );

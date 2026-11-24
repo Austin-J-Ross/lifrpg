@@ -83,7 +83,6 @@ dialog textarea {
   border-radius: 6px;
   background: var(--paper);
   color: var(--ink);
-  font: inherit;
 }
 textarea {
   resize: vertical;

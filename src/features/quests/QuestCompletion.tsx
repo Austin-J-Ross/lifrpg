@@ -19,7 +19,7 @@ export function QuestCompletion({
 }: {
   quest: Quest;
   award?: QuestAward;
-  onConfirm: () => void;
+  onConfirm: (at: number) => void;
   failed?: boolean;
   onClose: (completed: boolean) => void;
 }) {
@@ -90,7 +90,11 @@ export function QuestCompletion({
             <button type="button" autoFocus onClick={() => onClose(false)}>
               Cancel
             </button>
-            <button className="primary" type="button" onClick={onConfirm}>
+            <button
+              className="primary"
+              type="button"
+              onClick={() => onConfirm(Date.now())}
+            >
               Confirm completion
             </button>
           </div>

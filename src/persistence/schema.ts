@@ -187,6 +187,13 @@ export function validateState(value: unknown): AppState {
     const deadline = number(q.deadline, -8640000000000000);
     if (Number.isNaN(new Date(deadline).getTime()))
       throw Error('Invalid quest deadline.');
+    const completedAt =
+      q.completedAt === undefined ? undefined : number(q.completedAt);
+    if (
+      completedAt !== undefined &&
+      !Number.isFinite(new Date(completedAt).getTime())
+    )
+      throw Error('Invalid quest completion date.');
     if (typeof q.noDamage !== 'boolean') throw Error('Invalid damage setting.');
     const rate = number(q.rate);
     if (q.noDamage && rate !== 0)
@@ -202,6 +209,7 @@ export function validateState(value: unknown): AppState {
       noDamage: q.noDamage,
       ...(q.kind === undefined ? {} : { kind: oneOf(q.kind, questKinds) }),
       ...(q.size === undefined ? {} : { size: oneOf(q.size, questSizeKeys) }),
+      ...(completedAt === undefined ? {} : { completedAt }),
     };
   });
   unique(quests.map((q) => q.id));

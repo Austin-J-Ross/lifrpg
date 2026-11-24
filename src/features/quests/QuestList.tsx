@@ -10,16 +10,19 @@ import { EmptyState } from '../../components/ui/EmptyState';
 import styles from './QuestList.module.css';
 import { QuestCompletion, type QuestAward } from './QuestCompletion';
 import { QuestSwipeRow } from './QuestSwipeRow';
+import { isActiveQuest } from '../../state/reducer';
 function QuestItem({
   quest,
   onComplete,
   now,
   onSwipe,
+  onEdit,
 }: {
   quest: Quest;
   onComplete: () => void;
   now: number;
-  onSwipe?: () => boolean;
+  onSwipe?: (at: number) => boolean;
+  onEdit?: () => void;
 }) {
   const { state } = useApp();
   const c = state.classes.find((c) => c.id === quest.classId)!;
@@ -57,7 +60,19 @@ function QuestItem({
           {c.name} · {skill.name}
         </p>
       </div>
-      <span className={styles.reward}>+{quest.xp} XP</span>
+      <div className={styles.rowActions}>
+        <span className={styles.reward}>+{quest.xp} XP</span>
+        {onEdit && (
+          <button
+            type="button"
+            className="small-button"
+            aria-label={'Edit ' + quest.title}
+            onClick={onEdit}
+          >
+            Edit
+          </button>
+        )}
+      </div>
       <div className={styles.meta}>
         <time
           className={styles.deadline}
@@ -92,10 +107,12 @@ export function QuestList({
   layout,
   emptyAction,
   sizeFilter = 'all',
+  onEdit,
 }: {
   layout?: 'today';
   emptyAction?: '/classes' | '/quests';
   sizeFilter?: QuestSize | 'all';
+  onEdit?: (quest: Quest) => void;
 }) {
   const { state, send } = useApp();
   const [completion, setCompletion] = useState<{
@@ -117,12 +134,18 @@ export function QuestList({
       )?.focus();
     }
   }, [completion]);
-  function complete(quest: Quest) {
+  function complete(quest: Quest, at: number) {
     const skill = state.classes
       .find(({ id }) => id === quest.classId)
       ?.skills.find(({ id }) => id === quest.skillId);
-    if (!skill || !state.quests.some(({ id }) => id === quest.id)) return false;
-    if (!send({ type: 'quest/complete', id: quest.id })) {
+    if (
+      !skill ||
+      !state.quests.some(
+        (entry) => entry.id === quest.id && isActiveQuest(entry),
+      )
+    )
+      return false;
+    if (!send({ type: 'quest/complete', id: quest.id, at })) {
       setCompletion({ quest, failed: true });
       return false;
     }
@@ -137,8 +160,9 @@ export function QuestList({
     return true;
   }
   const today = layout === 'today';
+  const active = state.quests.filter(isActiveQuest);
   const empty =
-    today && state.quests.length ? (
+    today && active.length ? (
       <EmptyState>No quests of this size.</EmptyState>
     ) : today ? (
       <div className={styles.todayEmpty}>
@@ -157,14 +181,14 @@ export function QuestList({
       <EmptyState>All clear. A little breathing room, well earned.</EmptyState>
     );
   const quests = today
-    ? state.quests
+    ? active
         .filter(
           (quest) =>
             sizeFilter === 'all' ||
             (quest.size ?? questSizeFor(quest.xp)) === sizeFilter,
         )
         .sort((a, b) => a.deadline - b.deadline)
-    : state.quests;
+    : active;
   const tomorrow = new Date(now);
   tomorrow.setHours(0, 0, 0, 0);
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -189,8 +213,9 @@ export function QuestList({
       key={quest.id}
       quest={quest}
       now={now}
-      onSwipe={today ? () => complete(quest) : undefined}
+      onSwipe={today ? (at) => complete(quest, at) : undefined}
       onComplete={() => setCompletion({ quest })}
+      onEdit={onEdit ? () => onEdit(quest) : undefined}
     />
   );
   return (
@@ -221,7 +246,7 @@ export function QuestList({
           quest={completion.quest}
           award={completion.award}
           failed={completion.failed}
-          onConfirm={() => complete(completion.quest)}
+          onConfirm={(at) => complete(completion.quest, at)}
           onClose={(completed) => {
             focus.current = completed;
             setCompletion(null);

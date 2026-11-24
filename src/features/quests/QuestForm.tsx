@@ -3,8 +3,12 @@ import styles from './QuestForm.module.css';
 import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router';
 import { useApp } from '../../state/AppProvider';
-import { questSizes, type QuestSize } from '../../domain/definitions';
-import type { QuestKind } from '../../domain/models';
+import {
+  questSizeFor,
+  questSizes,
+  type QuestSize,
+} from '../../domain/definitions';
+import type { Quest, QuestKind } from '../../domain/models';
 import {
   dayDeadline,
   localDateValue,
@@ -14,30 +18,43 @@ import { Modal } from '../../components/ui/Modal';
 export function QuestForm({
   onClose,
   initialSize = 'medium',
+  quest,
 }: {
   onClose: () => void;
   initialSize?: QuestSize;
+  quest?: Quest;
 }) {
-  const { state, send, notify } = useApp();
-  const [title, setTitle] = useState(''),
-    [classId, setClassId] = useState(state.classes[0]?.id || ''),
-    [skillId, setSkillId] = useState(state.classes[0]?.skills[0]?.id || ''),
-    [date, setDate] = useState(localDateValue(new Date(dayDeadline(1)))),
-    [size, setSize] = useState<QuestSize>(initialSize),
-    [kind, setKind] = useState<QuestKind>('quest'),
-    [noDamage, setNoDamage] = useState(false);
+  const { state, send, notify, notice } = useApp();
+  const previousDate = quest && localDateValue(new Date(quest.deadline));
+  const previousSize = quest && (quest.size ?? questSizeFor(quest.xp));
+  const [title, setTitle] = useState(quest?.title ?? ''),
+    [classId, setClassId] = useState(
+      quest?.classId ?? state.classes[0]?.id ?? '',
+    ),
+    [skillId, setSkillId] = useState(
+      quest?.skillId ?? state.classes[0]?.skills[0]?.id ?? '',
+    ),
+    [date, setDate] = useState(
+      previousDate ?? localDateValue(new Date(dayDeadline(1))),
+    ),
+    [size, setSize] = useState<QuestSize>(previousSize ?? initialSize),
+    [kind, setKind] = useState<QuestKind>(quest?.kind ?? 'quest'),
+    [noDamage, setNoDamage] = useState(quest?.noDamage ?? false),
+    [showError, setShowError] = useState(false);
   const entry = state.classes.find((c) => c.id === classId);
   function submit(e: FormEvent) {
     e.preventDefault();
-    const deadline = deadlineForDate(date);
+    const deadline =
+      quest && date === previousDate ? quest.deadline : deadlineForDate(date);
     if (!Number.isFinite(deadline)) {
       notify('Enter a valid deadline.');
+      setShowError(true);
       return;
     }
     if (
       send({
-        type: 'quest/create',
-        id: createId(),
+        type: quest ? 'quest/edit' : 'quest/create',
+        id: quest?.id ?? createId(),
         title,
         classId,
         skillId,
@@ -47,8 +64,16 @@ export function QuestForm({
         noDamage,
       })
     ) {
-      notify(kind === 'habit' ? 'Habit added.' : 'Quest added.');
+      notify(
+        quest
+          ? 'Changes saved.'
+          : kind === 'habit'
+            ? 'Habit added.'
+            : 'Quest added.',
+      );
       onClose();
+    } else {
+      setShowError(true);
     }
   }
   if (!state.classes.length) {
@@ -67,7 +92,16 @@ export function QuestForm({
     );
   }
   return (
-    <Modal title="A new little adventure" onClose={onClose}>
+    <Modal
+      title={
+        quest
+          ? quest.kind === 'habit'
+            ? 'Edit habit'
+            : 'Edit quest'
+          : 'A new little adventure'
+      }
+      onClose={onClose}
+    >
       <form onSubmit={submit}>
         <label>
           Quest objective
@@ -168,9 +202,17 @@ export function QuestForm({
                 />
                 <span className={styles['size-card']}>
                   <strong>{value.label}</strong>
-                  <span>{value.xp} XP</span>
+                  <span>
+                    {quest && key === previousSize ? quest.xp : value.xp} XP
+                  </span>
                   <small>
-                    {noDamage ? 'No damage' : '−' + value.rate + '/day'}
+                    {noDamage
+                      ? 'No damage'
+                      : '−' +
+                        (quest && key === previousSize && !quest.noDamage
+                          ? quest.rate
+                          : value.rate) +
+                        '/day'}
                   </small>
                 </span>
               </label>
@@ -181,12 +223,17 @@ export function QuestForm({
             implemented.
           </p>
         </fieldset>
+        {showError && notice && <p role="alert">{notice}</p>}
         <div className="actions">
           <button type="button" onClick={onClose}>
             Cancel
           </button>
           <button className="primary" disabled={!entry}>
-            {kind === 'habit' ? 'Create Habit' : 'Create Quest'}
+            {quest
+              ? 'Save changes'
+              : kind === 'habit'
+                ? 'Create Habit'
+                : 'Create Quest'}
           </button>
         </div>
       </form>

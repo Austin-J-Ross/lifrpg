@@ -56,6 +56,7 @@ export interface Quest {
   noDamage: boolean;
   kind?: QuestKind;
   size?: QuestSize;
+  completedAt?: number;
 }
 export interface AppState {
   version: 2;

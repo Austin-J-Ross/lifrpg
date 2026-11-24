@@ -9,7 +9,9 @@ function Complete() {
   const { state, send } = useApp();
   return (
     <button
-      onClick={() => send({ type: 'quest/complete', id: state.quests[0].id })}
+      onClick={() =>
+        send({ type: 'quest/complete', id: state.quests[0].id, at: 123 })
+      }
     >
       Complete first
     </button>

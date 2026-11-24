@@ -35,6 +35,16 @@
   color: #bdd493;
   font-weight: 650;
 }
+.rowActions {
+  display: grid;
+  justify-items: end;
+  gap: 5px;
+}
+
+.rowActions button {
+  padding: 4px 8px;
+  min-height: 36px;
+}
 .meta {
   grid-column: 2/-1;
   display: flex;

@@ -14,7 +14,7 @@ export function QuestSwipeRow({
   entry: CharacterClass;
   skillName: string;
   damage: number;
-  onSwipe: () => boolean;
+  onSwipe: (at: number) => boolean;
   onConfirm: () => void;
 }) {
   const drag = useRef<{ id: number; start: number; width: number } | null>(
@@ -68,8 +68,9 @@ export function QuestSwipeRow({
       setReady(true);
       setCompleting(true);
       setOffset(gesture.width);
+      const at = Date.now();
       const finish = () => {
-        if (!onSwipe()) {
+        if (!onSwipe(at)) {
           setCompleting(false);
           setOffset(0);
           setReady(false);

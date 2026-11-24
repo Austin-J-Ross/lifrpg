@@ -24,8 +24,22 @@ body {
 }
 button,
 input,
-select {
+select,
+textarea {
   font: inherit;
+}
+
+@media (max-width: 680px), (pointer: coarse) {
+  :root {
+    /* iOS uses the field's font size when deciding whether to zoom on focus. */
+    --editable-control-font-size: 16px;
+  }
+}
+
+input:not([type='checkbox'], [type='radio'], [type='file'], [type='range']),
+select,
+textarea {
+  font-size: var(--editable-control-font-size, inherit);
 }
 button,
 a {

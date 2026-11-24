@@ -5,14 +5,19 @@ import { reduceState } from './reducer';
 it('awards XP once and preserves the incoming state', () => {
   const initial = decodeState(legacy);
   const q = initial.quests[0];
-  const completed = reduceState(initial, { type: 'quest/complete', id: q.id });
-  expect(completed.quests).toHaveLength(2);
+  const completed = reduceState(initial, {
+    type: 'quest/complete',
+    id: q.id,
+    at: 123,
+  });
+  expect(completed.quests).toHaveLength(3);
+  expect(completed.quests[0]).toMatchObject({ id: q.id, completedAt: 123 });
   expect(completed.classes[0].xp).toBe(760);
   expect(completed.classes[0].skills[0].xp).toBe(760);
   expect(initial.classes[0].xp).toBe(640);
-  expect(reduceState(completed, { type: 'quest/complete', id: q.id })).toBe(
-    completed,
-  );
+  expect(
+    reduceState(completed, { type: 'quest/complete', id: q.id, at: 456 }),
+  ).toBe(completed);
 });
 it('rejects duplicate names at the action boundary', () => {
   const initial = decodeState(legacy);
