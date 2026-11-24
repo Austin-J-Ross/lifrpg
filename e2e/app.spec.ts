@@ -8,50 +8,28 @@ const legacy = JSON.parse(
 );
 import fs from 'node:fs/promises';
 const origin = 'http://quest.local';
-test('logs and recalls readings through their domain rings', async ({
+test('opens a health tray with a meter and static metric labels', async ({
   page,
 }) => {
-  await page.clock.setFixedTime(new Date('2026-11-23T15:00:00Z'));
   await page.goto(origin + '/#/home');
-  await page.getByRole('button', { name: 'Mental health' }).click();
-  const mental = page.getByRole('dialog', { name: 'Mental health' });
+  const mental = page.getByRole('button', { name: 'Mental health' });
+  const physical = page.getByRole('button', { name: 'Physical health' });
+  await mental.click();
+  await expect(mental).toHaveAttribute('aria-expanded', 'true');
   await expect(
-    mental.getByText('No entry', { exact: true }).filter({ visible: true }),
-  ).toBeVisible();
-  await mental.getByRole('button', { name: 'Log sleep' }).click();
-  await mental.getByLabel('Wake-up date').fill('2026-11-22');
-  await mental.getByLabel('Hours slept').fill('7.5');
-  await mental.getByRole('button', { name: 'Save sleep' }).click();
-  await expect(
-    mental.getByText('No entry', { exact: true }).filter({ visible: true }),
-  ).toBeVisible();
-  await mental.getByText('Sleep history').click();
-  await expect(mental.getByText('7.5 h')).toBeVisible();
-  await mental.getByRole('button', { name: 'Close', exact: true }).click();
-
-  await page.getByRole('button', { name: 'Physical health' }).click();
-  const physical = page.getByRole('dialog', { name: 'Physical health' });
-  await physical.getByRole('button', { name: 'Log weight' }).click();
-  await physical.getByLabel('Date', { exact: true }).fill('2026-11-21');
-  await physical
-    .getByRole('spinbutton', { name: 'Weight', exact: true })
-    .fill('72.4');
-  await physical.getByLabel('Unit').selectOption('kg');
-  await physical.getByRole('button', { name: 'Save weight' }).click();
-  await physical.getByRole('button', { name: 'Log calories' }).click();
-  await physical.getByLabel('Daily calories (kcal)').fill('1850');
-  await physical.getByRole('button', { name: 'Save calories' }).click();
-  await page.reload();
-  await page.getByRole('button', { name: 'Physical health' }).click();
-  await expect(
-    physical.getByText('72.4 kg').filter({ visible: true }),
-  ).toBeVisible();
-  await expect(
-    physical.locator('time[datetime="2026-11-21"]').first(),
-  ).toBeVisible();
-  await expect(
-    physical.getByText('1,850 kcal').filter({ visible: true }),
-  ).toBeVisible();
+    page.getByRole('meter', { name: 'Mental example health' }),
+  ).toHaveAttribute('aria-valuenow', '62');
+  await expect(page.getByText('Sleep', { exact: true })).toBeVisible();
+  await physical.click();
+  await expect(mental).toHaveAttribute('aria-expanded', 'false');
+  const tray = page.getByRole('region', { name: 'Physical health' });
+  await expect(tray.getByRole('meter')).toHaveAttribute('aria-valuenow', '81');
+  await expect(tray.getByRole('listitem')).toHaveText(['Weight', 'Calories']);
+  await tray.getByText('Weight', { exact: true }).click();
+  await expect(page).toHaveURL(/#\/home$/);
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await physical.click();
+  await expect(tray).toBeHidden();
 });
 
 test.describe('touch navigation', () => {

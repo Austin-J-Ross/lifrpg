@@ -8,15 +8,6 @@ export interface Measurement {
   unit: 'h' | 'lb' | 'kg' | 'kcal';
 }
 
-export function localDate(now: number) {
-  const date = new Date(now);
-  return [
-    String(date.getFullYear()).padStart(4, '0'),
-    String(date.getMonth() + 1).padStart(2, '0'),
-    String(date.getDate()).padStart(2, '0'),
-  ].join('-');
-}
-
 export function validMeasurementDate(value: string) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
   const date = new Date(value + 'T00:00:00Z');

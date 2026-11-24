@@ -1,9 +1,9 @@
 import type { Category, Domain } from './models';
-export const domains: { name: Domain; color: string }[] = [
-  { name: 'Shelter', color: '#7f9272' },
-  { name: 'Monetary', color: '#9b9b6b' },
-  { name: 'Mental', color: '#9b8bac' },
-  { name: 'Physical', color: '#72979a' },
+export const domains: { name: Domain; value: number; metrics: string[] }[] = [
+  { name: 'Shelter', value: 86, metrics: [] },
+  { name: 'Monetary', value: 74, metrics: [] },
+  { name: 'Mental', value: 62, metrics: ['Sleep'] },
+  { name: 'Physical', value: 81, metrics: ['Weight', 'Calories'] },
 ];
 export const questSizes = {
   tiny: { label: 'Tiny', xp: 25, rate: 1 },

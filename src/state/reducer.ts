@@ -8,10 +8,8 @@ import type {
 import { classDomain, questSizes, type QuestSize } from '../domain/definitions';
 import { classProgress } from '../domain/progression';
 import { validateState } from '../persistence/schema';
-import type { Measurement } from '../domain/measurements';
 export type Action =
   | { type: 'profile/save'; profile: Profile }
-  | { type: 'measurement/save'; entry: Measurement }
   | {
       type: 'class/create';
       id: string;
@@ -39,20 +37,6 @@ export function reduceState(state: AppState, action: Action): AppState {
   switch (action.type) {
     case 'state/import':
       return validateState(action.state);
-    case 'measurement/save': {
-      const entry = action.entry;
-      next = {
-        ...state,
-        measurements: [
-          ...(state.measurements ?? []).filter(
-            (current) =>
-              current.kind !== entry.kind || current.date !== entry.date,
-          ),
-          entry,
-        ],
-      };
-      break;
-    }
     case 'profile/save': {
       const profile = Object.fromEntries(
         Object.entries(action.profile).map(([key, value]) => [

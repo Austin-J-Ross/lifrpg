@@ -1,9 +1,7 @@
 import styles from './HealthRings.module.css';
-import { useState, type CSSProperties } from 'react';
+import { useId, useState, type CSSProperties } from 'react';
 import { domains } from '../../domain/definitions';
 import type { Domain } from '../../domain/models';
-import { Modal } from '../../components/ui/Modal';
-import { DomainMeasurements } from './DomainMeasurements';
 function Icon({ name }: { name: Domain }) {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -31,39 +29,70 @@ function Icon({ name }: { name: Domain }) {
 
 export function HealthRings() {
   const [selected, setSelected] = useState<Domain | null>(null);
+  const trayId = useId();
+  const active = domains.find(({ name }) => name === selected);
+
   return (
-    <div
-      className={styles['health-grid']}
-      role="group"
-      aria-label="Domain health"
-    >
-      {domains.map((domain) => (
-        <button
-          key={domain.name}
-          type="button"
-          aria-label={domain.name + ' health'}
-          aria-haspopup="dialog"
-          className={styles['health-domain']}
-          style={{ '--domain-color': domain.color } as CSSProperties}
-          onClick={() => setSelected(domain.name)}
-        >
-          <span className={styles['health-ring']}>
-            <span className={styles['health-domain-icon']}>
-              <Icon name={domain.name} />
+    <div className={styles.health}>
+      <div
+        className={styles['health-grid']}
+        role="group"
+        aria-label="Domain health"
+      >
+        {domains.map((domain) => (
+          <button
+            key={domain.name}
+            type="button"
+            aria-label={domain.name + ' health'}
+            aria-expanded={selected === domain.name}
+            aria-controls={trayId}
+            className={styles['health-domain']}
+            style={{ '--health': domain.value } as CSSProperties}
+            onClick={() =>
+              setSelected(selected === domain.name ? null : domain.name)
+            }
+            onKeyDown={(event) => {
+              if (event.key === 'Escape' && selected) setSelected(null);
+            }}
+          >
+            <span className={styles['health-ring']}>
+              <span className={styles['health-domain-icon']}>
+                <Icon name={domain.name} />
+              </span>
             </span>
-          </span>
-        </button>
-      ))}
-      {selected && (
-        <Modal title={selected + ' health'} onClose={() => setSelected(null)}>
-          <DomainMeasurements domain={selected} />
-          <div className="actions">
-            <button type="button" onClick={() => setSelected(null)}>
-              Close
-            </button>
-          </div>
-        </Modal>
-      )}
+          </button>
+        ))}
+      </div>
+      <div id={trayId} hidden={!active} className={styles.tray}>
+        {active && (
+          <section
+            aria-label={active.name + ' health'}
+            style={{ '--health': active.value } as CSSProperties}
+          >
+            <div className={styles.heading}>
+              <h3>{active.name} health</h3>
+              <span>{active.value}% example health</span>
+            </div>
+            <div
+              className={styles.meter}
+              role="meter"
+              aria-label={active.name + ' example health'}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={active.value}
+            >
+              <span />
+            </div>
+            {active.metrics.length > 0 && (
+              <ul className={styles.metrics}>
+                {active.metrics.map((metric) => (
+                  <li key={metric}>{metric}</li>
+                ))}
+              </ul>
+            )}
+          </section>
+        )}
+      </div>
     </div>
   );
 }

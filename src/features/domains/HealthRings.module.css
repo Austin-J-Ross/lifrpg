@@ -1,5 +1,7 @@
-.health-grid {
+.health {
   grid-column: 1 / -1;
+}
+.health-grid {
   display: flex;
   justify-content: space-evenly;
   width: min(100%, 360px);
@@ -15,7 +17,7 @@
   border: 0;
   border-radius: 50%;
   background: transparent;
-  color: var(--domain-color);
+  color: hsl(calc(var(--health) * 1.2) 65% 65%);
   touch-action: pan-y;
   -webkit-touch-callout: none;
   user-select: none;
@@ -24,18 +26,19 @@
   width: 100%;
   aspect-ratio: 1;
   position: relative;
-  border: 2px solid currentColor;
   border-radius: 50%;
+  background: conic-gradient(currentColor calc(var(--health) * 1%), #514a40 0);
 }
-.health-domain:hover .health-ring {
-  background: #fff2cb10;
+.health-domain:is(:hover, [aria-expanded='true']) .health-domain-icon {
+  background: #3b3227;
 }
 .health-domain-icon {
   position: absolute;
-  inset: 0;
+  inset: 3px;
   display: grid;
   place-items: center;
-  color: #e5d2aa;
+  border-radius: 50%;
+  background: #201c1c;
 }
 .health-domain-icon svg {
   width: 18px;
@@ -45,4 +48,53 @@
   stroke-width: 1.6;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+.tray {
+  margin-top: 8px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #1b1819;
+}
+
+.heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.heading h3 {
+  font-size: 14px;
+}
+
+.heading span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.meter {
+  height: 14px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #514a40;
+}
+
+.meter span {
+  display: block;
+  width: calc(var(--health) * 1%);
+  height: 100%;
+  background: hsl(calc(var(--health) * 1.2) 65% 65%);
+}
+
+.metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin: 12px 0 0;
+  padding: 0;
+  color: var(--muted);
+  list-style: none;
 }
