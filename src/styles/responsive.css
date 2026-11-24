@@ -1,13 +1,5 @@
 /* Tablet and mobile */
 @media (max-width: 900px) {
-  .brand {
-    gap: 6px;
-    font-size: 20px;
-    letter-spacing: 2px;
-  }
-  .brand span {
-    font-size: 25px;
-  }
   main {
     padding: 26px 24px;
   }

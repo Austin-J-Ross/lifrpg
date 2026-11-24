@@ -1,4 +1,5 @@
 import { Link } from 'react-router';
+import { AboutMenu } from '../components/ui/AboutMenu';
 import { useApp } from '../state/AppProvider';
 import { HealthRings } from '../features/domains/HealthRings';
 import { QuestList } from '../features/quests/QuestList';
@@ -13,26 +14,36 @@ export function HomePage() {
   );
   return (
     <div className="home-layout">
-      <section className="character-sheet" aria-label="Character">
-        <header className="profile-header">
+      <header className="character-banner">
+        {profile.portrait ? (
+          <img className="character-icon" src={profile.portrait} alt="" />
+        ) : (
+          <Link
+            className="character-icon"
+            to="/about"
+            aria-label="Add a full-body photo"
+          >
+            <span aria-hidden="true">◇</span>
+          </Link>
+        )}
+        <div className="character-identity">
           <h2 id="display-name">
             {[profile.firstName, profile.lastName].filter(Boolean).join(' ') ||
               'Adventurer'}
           </h2>
           {highestLevel > 0 && <p>Top class level {highestLevel}</p>}
-        </header>
+        </div>
+        <AboutMenu />
+      </header>
+      <section className="character-sheet" aria-label="Character">
         <div className="character-overview">
           <div className="full-body-portrait">
             {profile.portrait ? (
               <img src={profile.portrait} alt="Full-body character portrait" />
             ) : (
-              <Link
-                className="portrait-placeholder"
-                to="/about"
-                aria-label="Add a full-body photo"
-              >
-                <span aria-hidden="true">◇</span>
-              </Link>
+              <div className="portrait-placeholder" aria-hidden="true">
+                ◇
+              </div>
             )}
           </div>
           <HealthRings />
