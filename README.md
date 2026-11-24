@@ -78,4 +78,5 @@ For GitHub Pages, configure a workflow to build and upload dist/ with the offici
 Skills store cumulative XP; the cost to advance from level L is ceil(100 * 1.5^(L - 1)). Classes keep their original separate XP threshold and level progression. A quest awards XP once, and deadlines remain at 11:59 PM local time.
 
 Health rings display explicitly labelled example values. Quest damage settings retain their planned rates, but automatic damage is not implemented. Accounts, cloud synchronization, notifications and automatic health tracking remain separate product work. See plan.md for the completed restructuring checklist.
+
 # lifrpg
