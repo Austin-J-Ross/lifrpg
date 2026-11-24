@@ -43,6 +43,67 @@ test('About saves optional names and a photo independently', async ({
   );
 });
 
+test('resizes large portrait uploads and rejects files over 5 MB', async ({
+  page,
+}) => {
+  await page.goto(origin + '/#/about');
+  const photo = await page.evaluate(() => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1000;
+    canvas.height = 1500;
+    const ctx = canvas.getContext('2d')!;
+    const pixels = ctx.createImageData(canvas.width, canvas.height);
+    let seed = 12345;
+    for (let i = 0; i < pixels.data.length; i += 4) {
+      seed ^= seed << 13;
+      seed ^= seed >>> 17;
+      seed ^= seed << 5;
+      pixels.data[i] = seed & 255;
+      pixels.data[i + 1] = (seed >>> 8) & 255;
+      pixels.data[i + 2] = (seed >>> 16) & 255;
+      pixels.data[i + 3] = 255;
+    }
+    ctx.putImageData(pixels, 0, 0);
+    return canvas.toDataURL('image/png').split(',')[1];
+  });
+  const buffer = Buffer.from(photo, 'base64');
+  expect(buffer.length).toBeGreaterThan(1024 * 1024);
+  expect(buffer.length).toBeLessThanOrEqual(5 * 1024 * 1024);
+  const picker = page.getByLabel('Full-body photo (optional)');
+  await picker.setInputFiles({
+    name: 'large.png',
+    mimeType: 'image/png',
+    buffer,
+  });
+  await page.getByRole('button', { name: 'Save profile' }).click();
+  await expect(
+    page.getByRole('button', { name: 'Remove current photo' }),
+  ).toBeVisible();
+  await picker.setInputFiles({
+    name: 'too-large.png',
+    mimeType: 'image/png',
+    buffer: Buffer.alloc(5 * 1024 * 1024 + 1),
+  });
+  await page.getByRole('button', { name: 'Save profile' }).click();
+  await expect(page.getByRole('alert')).toContainText('up to 5 MB');
+  await page.reload();
+  await page
+    .getByRole('navigation')
+    .getByRole('link', { name: 'Phys. Stats' })
+    .click();
+  const portrait = page.getByRole('img', {
+    name: 'Full-body character portrait',
+  });
+  await expect(portrait).toHaveAttribute('src', /^data:image\/jpeg;base64,/);
+  const dimensions = await portrait.evaluate(
+    async (element: HTMLImageElement) => {
+      await element.decode();
+      return [element.naturalWidth, element.naturalHeight];
+    },
+  );
+  expect(dimensions).toEqual([853, 1280]);
+});
+
 test('saves mental stats and a log with one sentiment per entry', async ({
   page,
 }) => {

@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useApp } from '../../state/AppProvider';
 import type { Profile } from '../../domain/models';
+import { maxPortraitUploadBytes, readPortraitUpload } from './portraitUpload';
 export function ProfileForm() {
   const { state, send, notify } = useApp();
   const [profile, setProfile] = useState<Profile>(state.profile);
@@ -16,23 +17,16 @@ export function ProfileForm() {
     if (
       file &&
       (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) ||
-        file.size > 1048576 ||
+        file.size > maxPortraitUploadBytes ||
         !file.size)
     ) {
-      setPhotoError('Choose a JPEG, PNG, or WebP photo up to 1 MB.');
+      setPhotoError('Choose a JPEG, PNG, or WebP photo up to 5 MB.');
       return;
     }
     setSaving(true);
     try {
       const updated = { ...profile };
-      if (file) {
-        updated.portrait = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(String(reader.result));
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
-      }
+      if (file) updated.portrait = await readPortraitUpload(file);
       if (send({ type: 'profile/save', profile: updated })) {
         input.value = '';
         notify('Profile saved.');
@@ -70,9 +64,13 @@ export function ProfileForm() {
           name="portrait"
           type="file"
           accept="image/jpeg,image/png,image/webp"
+          aria-describedby="profile-photo-formats"
           disabled={saving}
         />
       </label>
+      <p id="profile-photo-formats" className="form-note">
+        JPEG, PNG, or WebP up to 5 MB.
+      </p>
       {profile.portrait && (
         <button
           className="small-button"
