@@ -113,3 +113,15 @@
   font: inherit;
   font-size: 11px;
 }
+
+.edit-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 6px;
+}
+
+.edit-actions button {
+  min-height: 36px;
+  padding: 5px 8px;
+}

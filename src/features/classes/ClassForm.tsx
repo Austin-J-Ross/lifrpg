@@ -6,34 +6,61 @@ import {
   domainNames,
   type Category,
   type Domain,
+  type CharacterClass,
 } from '../../domain/models';
 import { classDomain } from '../../domain/definitions';
 import { Modal } from '../../components/ui/Modal';
-export function ClassForm({ onClose }: { onClose: () => void }) {
-  const { send, notify } = useApp();
-  const [name, setName] = useState(''),
-    [category, setCategory] = useState<Category>('personal'),
-    [domain, setDomain] = useState<Domain>('Physical'),
-    [summary, setSummary] = useState('');
+import { MAX_CLASS_LEVEL } from '../../domain/progression';
+export function ClassForm({
+  onClose,
+  entry,
+}: {
+  onClose: () => void;
+  entry?: CharacterClass;
+}) {
+  const { send, notify, notice } = useApp();
+  const [showError, setShowError] = useState(false);
+  const [name, setName] = useState(entry?.name ?? ''),
+    [category, setCategory] = useState<Category>(entry?.category ?? 'personal'),
+    [domain, setDomain] = useState<Domain>(entry?.domain ?? 'Physical'),
+    [summary, setSummary] = useState(entry?.summary ?? ''),
+    [level, setLevel] = useState(String(entry?.level ?? 1));
+  const linkedDomain =
+    entry && category === entry.category && domain === entry.domain
+      ? entry.domain
+      : classDomain(category, domain);
   function submit(e: FormEvent) {
     e.preventDefault();
+    const fields = { name, category, domain, summary };
     if (
-      send({
-        type: 'class/create',
-        id: createId(),
-        skillId: createId(),
-        name,
-        category,
-        domain,
-        summary,
-      })
+      send(
+        entry
+          ? {
+              type: 'class/edit',
+              id: entry.id,
+              level: Number(level),
+              ...fields,
+            }
+          : {
+              type: 'class/create',
+              id: createId(),
+              skillId: createId(),
+              ...fields,
+            },
+      )
     ) {
-      notify(name.trim() + ' created with the General skill.');
+      notify(
+        entry
+          ? name.trim() + ' updated.'
+          : name.trim() + ' created with the General skill.',
+      );
       onClose();
+    } else {
+      setShowError(true);
     }
   }
   return (
-    <Modal title="A new class" onClose={onClose}>
+    <Modal title={entry ? 'Edit class' : 'A new class'} onClose={onClose}>
       <form onSubmit={submit}>
         <label>
           Class name
@@ -72,7 +99,7 @@ export function ClassForm({ onClose }: { onClose: () => void }) {
           </label>
         )}
         <p className="domain-link">
-          Linked domain <strong>{classDomain(category, domain)}</strong>
+          Linked domain <strong>{linkedDomain}</strong>
         </p>
         <label>
           Summary
@@ -83,12 +110,30 @@ export function ClassForm({ onClose }: { onClose: () => void }) {
             rows={3}
           />
         </label>
-        <p className="form-note">Starts at level 1 with a General skill.</p>
+        {entry ? (
+          <label>
+            Class level
+            <input
+              type="number"
+              min={1}
+              max={Math.max(MAX_CLASS_LEVEL, entry.level)}
+              step={1}
+              required
+              value={level}
+              onChange={(e) => setLevel(e.target.value)}
+            />
+          </label>
+        ) : (
+          <p className="form-note">Starts at level 1 with a General skill.</p>
+        )}
+        {showError && notice && <p role="alert">{notice}</p>}
         <div className="actions">
           <button type="button" onClick={onClose}>
             Cancel
           </button>
-          <button className="primary">Create Class</button>
+          <button className="primary">
+            {entry ? 'Save class' : 'Create Class'}
+          </button>
         </div>
       </form>
     </Modal>

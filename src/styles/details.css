@@ -54,3 +54,54 @@
 .health-detail .detail-heading {
   margin: 0;
 }
+
+.quest-xp-result {
+  --color: var(--green);
+  margin-top: 16px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--metal-inset);
+}
+
+.quest-xp-result h3 {
+  margin-bottom: 10px;
+}
+
+.xp-gain-bar {
+  height: 12px;
+}
+
+.xp-gain-fill {
+  animation: xp-gain-fill 650ms ease-out;
+}
+
+.xp-gain-level {
+  animation: xp-gain-level 1s ease-out;
+}
+
+@keyframes xp-gain-fill {
+  from {
+    width: var(--xp-from);
+  }
+}
+
+@keyframes xp-gain-level {
+  0% {
+    width: var(--xp-from);
+  }
+  48%,
+  49% {
+    width: 100%;
+  }
+  50% {
+    width: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xp-gain-fill,
+  .xp-gain-level {
+    animation: none;
+  }
+}

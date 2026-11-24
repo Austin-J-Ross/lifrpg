@@ -1,11 +1,12 @@
 import { useClock } from '../../components/ui/useClock';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { useApp } from '../../state/AppProvider';
 import { DAY } from '../../domain/deadlines';
 import type { Quest } from '../../domain/models';
 import { EmptyState } from '../../components/ui/EmptyState';
 import styles from './QuestList.module.css';
+import { QuestCompletion } from './QuestCompletion';
 function QuestItem({
   quest,
   onComplete,
@@ -77,7 +78,8 @@ export function QuestList({
   layout?: 'today';
   emptyAction?: '/classes' | '/quests';
 }) {
-  const { state, send, notify } = useApp();
+  const { state } = useApp();
+  const [confirmation, setConfirmation] = useState<Quest | null>(null);
   const now = useClock();
   const ref = useRef<HTMLDivElement>(null),
     focus = useRef(false);
@@ -91,44 +93,53 @@ export function QuestList({
         )
       )?.focus();
     }
-  }, [state.quests]);
+  }, [confirmation]);
   const today = layout === 'today';
-  if (!state.quests.length) {
-    return today ? (
-      <div className={styles.todayEmpty}>
-        <p>No active quests.</p>
-        <Link
-          id="today-empty-action"
-          className="add-button"
-          to={emptyAction ?? '/quests'}
-        >
-          {emptyAction === '/classes'
-            ? 'Create a class to start'
-            : 'Go to Quests'}
-        </Link>
-      </div>
-    ) : (
-      <EmptyState>All clear. A little breathing room, well earned.</EmptyState>
-    );
-  }
+  const empty = today ? (
+    <div className={styles.todayEmpty}>
+      <p>No active quests.</p>
+      <Link
+        id="today-empty-action"
+        className="add-button"
+        to={emptyAction ?? '/quests'}
+      >
+        {emptyAction === '/classes'
+          ? 'Create a class to start'
+          : 'Go to Quests'}
+      </Link>
+    </div>
+  ) : (
+    <EmptyState>All clear. A little breathing room, well earned.</EmptyState>
+  );
   const quests = today
     ? [...state.quests].sort((a, b) => a.deadline - b.deadline)
     : state.quests;
   return (
-    <div ref={ref} className={today ? styles.today : undefined}>
-      {quests.map((q) => (
-        <QuestItem
-          key={q.id}
-          quest={q}
-          now={now}
-          today={today}
-          onComplete={() => {
-            focus.current = true;
-            if (send({ type: 'quest/complete', id: q.id }))
-              notify(q.title + ' complete! +' + q.xp + ' XP');
+    <>
+      {quests.length ? (
+        <div ref={ref} className={today ? styles.today : undefined}>
+          {quests.map((q) => (
+            <QuestItem
+              key={q.id}
+              quest={q}
+              now={now}
+              today={today}
+              onComplete={() => setConfirmation(q)}
+            />
+          ))}
+        </div>
+      ) : (
+        empty
+      )}
+      {confirmation && (
+        <QuestCompletion
+          quest={confirmation}
+          onClose={(completed) => {
+            focus.current = completed;
+            setConfirmation(null);
           }}
         />
-      ))}
-    </div>
+      )}
+    </>
   );
 }

@@ -4,10 +4,17 @@ import type { CharacterClass } from '../../domain/models';
 import { useApp } from '../../state/AppProvider';
 import { skillProgress } from '../../domain/progression';
 import { ProgressBar } from '../../components/ui/ProgressBar';
+import { ClassForm } from './ClassForm';
+import { SkillEditForm } from './SkillEditForm';
 import styles from './ClassCard.module.css';
 export function ClassCard({ entry }: { entry: CharacterClass }) {
   const { state, send, notify } = useApp();
   const [name, setName] = useState('');
+  const [editingClass, setEditingClass] = useState(false);
+  const [editingSkillId, setEditingSkillId] = useState<string | null>(null);
+  const editingSkill = entry.skills.find(
+    (skill) => skill.id === editingSkillId,
+  );
   const active = state.quests.filter((q) => q.classId === entry.id).length;
   function submit(e: FormEvent) {
     e.preventDefault();
@@ -30,7 +37,17 @@ export function ClassCard({ entry }: { entry: CharacterClass }) {
     >
       <header className={styles['card-heading']}>
         <h2>{entry.name}</h2>
-        <span className={styles['level-badge']}>Level {entry.level}</span>
+        <div className={styles['edit-actions']}>
+          <span className={styles['level-badge']}>Level {entry.level}</span>
+          <button
+            type="button"
+            className="small-button"
+            aria-label={'Edit class ' + entry.name}
+            onClick={() => setEditingClass(true)}
+          >
+            Edit
+          </button>
+        </div>
       </header>
       <p className={styles['class-domain']}>{entry.domain} domain</p>
       <p className={styles['class-summary']}>
@@ -67,7 +84,17 @@ export function ClassCard({ entry }: { entry: CharacterClass }) {
             <li className={styles['skill-row']} key={s.id}>
               <div className={styles['skill-name']}>
                 <strong>{s.name}</strong>
-                <span>Level {p.level}</span>
+                <div className={styles['edit-actions']}>
+                  <span className={styles['level-badge']}>Level {p.level}</span>
+                  <button
+                    type="button"
+                    className="small-button"
+                    aria-label={'Edit skill ' + s.name}
+                    onClick={() => setEditingSkillId(s.id)}
+                  >
+                    Edit
+                  </button>
+                </div>
               </div>
               <div className="xp-label">
                 <span>
@@ -98,6 +125,16 @@ export function ClassCard({ entry }: { entry: CharacterClass }) {
         />
         <button className="small-button">+ Add skill</button>
       </form>
+      {editingClass && (
+        <ClassForm entry={entry} onClose={() => setEditingClass(false)} />
+      )}
+      {editingSkill && (
+        <SkillEditForm
+          classId={entry.id}
+          skill={editingSkill}
+          onClose={() => setEditingSkillId(null)}
+        />
+      )}
     </article>
   );
 }

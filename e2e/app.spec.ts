@@ -95,6 +95,8 @@ test.describe('touch navigation', () => {
       .nth(1)
       .getByRole('button', { name: /^Complete / })
       .click();
+    await page.getByRole('button', { name: 'Confirm completion' }).click();
+    await page.getByRole('button', { name: 'Done', exact: true }).click();
     await expect(cards).toHaveCount(2);
     await expect(
       today.getByRole('link', { name: '2 active quests. View quests' }),
@@ -149,14 +151,33 @@ test('fresh profile, class, skill, quests, XP, counts and reload', async ({
   await expect(
     page.getByRole('heading', { name: 'Write a scene' }),
   ).toBeVisible();
-  await page
-    .getByRole('button', { name: 'Complete Write a scene', exact: true })
-    .click();
+  const completeScene = page.getByRole('button', {
+    name: 'Complete Write a scene',
+    exact: true,
+  });
+  await completeScene.click();
+  await expect(
+    page.getByRole('button', { name: 'Cancel', exact: true }),
+  ).toBeFocused();
+  await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await expect(completeScene).toBeFocused();
+  await expect(page.locator('#portrait-quest-count')).toHaveText('2');
+  await completeScene.click();
+  await page.getByRole('button', { name: 'Confirm completion' }).click();
+  const reward = page.getByRole('dialog', { name: 'Quest complete' });
+  await expect(reward.getByText('Stories · +100 XP')).toBeVisible();
+  await expect(reward.getByText('Level 1 → 2')).toBeVisible();
+  await expect(
+    reward.getByRole('progressbar', { name: 'Stories experience' }),
+  ).toHaveAttribute('aria-valuemax', '150');
+  await reward.getByRole('button', { name: 'Done', exact: true }).click();
   await expect(page.locator('#portrait-quest-count')).toHaveText('1');
   await expect(
     page.getByRole('button', { name: 'Complete Read a story' }),
   ).toBeFocused();
   await page.getByRole('button', { name: 'Complete Read a story' }).click();
+  await page.getByRole('button', { name: 'Confirm completion' }).click();
+  await page.getByRole('button', { name: 'Done', exact: true }).click();
   await expect(page.locator('#portrait-quest-count')).toHaveText('0');
   const saved = await page.evaluate(() =>
     JSON.parse(localStorage.getItem('quest-character-v2')!),
@@ -166,6 +187,24 @@ test('fresh profile, class, skill, quests, XP, counts and reload', async ({
       .xp,
   ).toBe(100);
   expect(saved.classes[0].xp).toBe(200);
+  await page.getByRole('link', { name: 'Classes', exact: true }).click();
+  await page.getByRole('button', { name: 'Edit class Writer' }).click();
+  await page.getByLabel('Class name').fill('Author');
+  await page.getByLabel('Class level').fill('4');
+  await page.getByRole('button', { name: 'Save class' }).click();
+  await page.getByRole('button', { name: 'Edit skill Stories' }).click();
+  await page.getByLabel('Skill name').fill('Fiction');
+  await page.getByLabel('Skill level').fill('3');
+  await page.getByRole('button', { name: 'Save skill' }).click();
+  await page.reload();
+  const author = page.getByRole('article').filter({
+    has: page.getByRole('heading', { name: 'Author', exact: true }),
+  });
+  await expect(author.getByText('Level 4', { exact: true })).toBeVisible();
+  await expect(author.getByText('Level 3', { exact: true })).toBeVisible();
+  await expect(
+    author.getByRole('progressbar', { name: 'Fiction experience' }),
+  ).toHaveAttribute('aria-valuemax', '225');
   await page.getByRole('link', { name: 'Home', exact: true }).click();
   await expect(
     page.getByRole('heading', { name: 'Taylor Quest', exact: true }),
