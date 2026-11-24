@@ -22,6 +22,65 @@
   font-weight: 750;
   letter-spacing: 3px;
 }
+.sidebar-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.about-menu {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid #a5b09f66;
+  border-radius: 6px;
+  background: transparent;
+  color: #f4f3e9;
+}
+.about-menu:hover,
+.about-menu[aria-expanded='true'] {
+  background: #ffffff18;
+}
+.about-tray {
+  position: relative;
+  flex-shrink: 0;
+}
+.tray-links {
+  position: absolute;
+  z-index: 2;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 132px;
+  padding: 4px;
+  border: 1px solid #a5b09f66;
+  border-radius: 6px;
+  background: #272e28;
+  box-shadow: 0 5px 14px #0005;
+}
+.tray-links a {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 4px;
+}
+.tray-links a:is(:hover, :focus-visible) {
+  background: #ffffff18;
+}
+.hamburger-lines {
+  width: 18px;
+  height: 2px;
+  background: currentColor;
+  box-shadow:
+    0 -5px currentColor,
+    0 5px currentColor;
+}
+.swipe-area {
+  touch-action: pan-y pinch-zoom;
+}
+.app > .sidebar {
+  z-index: 1;
+}
 .brand span {
   color: #c6d2a9;
   font-size: 32px;

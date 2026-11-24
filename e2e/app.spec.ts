@@ -8,6 +8,71 @@ const legacy = JSON.parse(
 );
 import fs from 'node:fs/promises';
 const origin = 'http://quest.local';
+test.describe('touch navigation', () => {
+  test.use({
+    hasTouch: true,
+    isMobile: true,
+    viewport: { width: 390, height: 844 },
+  });
+
+  test('opens the About tray on tap', async ({ page }) => {
+    await page.goto(origin + '/#/home');
+    const menu = page.getByRole('button', { name: 'Menu', exact: true });
+    const about = page.getByRole('link', { name: 'About', exact: true });
+    await expect(about).toBeHidden();
+    await menu.tap();
+    await expect(menu).toHaveAttribute('aria-expanded', 'true');
+    await expect(page).toHaveURL(/#\/home$/);
+    await about.tap();
+    await expect(page).toHaveURL(/#\/about$/);
+    await expect(menu).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  test('swipes through the main pages and opens About from the hamburger', async ({
+    page,
+  }) => {
+    await page.goto(origin + '/#/home');
+    const client = await page.context().newCDPSession(page);
+    async function swipe(from: number, to: number) {
+      await page.locator('main h1').waitFor();
+      await client.send('Input.dispatchTouchEvent', {
+        type: 'touchStart',
+        touchPoints: [{ x: from, y: 300 }],
+      });
+      for (const progress of [0.25, 0.5, 0.75, 1]) {
+        await client.send('Input.dispatchTouchEvent', {
+          type: 'touchMove',
+          touchPoints: [{ x: from + (to - from) * progress, y: 300 }],
+        });
+      }
+      await client.send('Input.dispatchTouchEvent', {
+        type: 'touchEnd',
+        touchPoints: [],
+      });
+    }
+    await swipe(310, 80);
+    await expect(page).toHaveURL(/#\/classes$/);
+    await swipe(310, 80);
+    await expect(page).toHaveURL(/#\/quests$/);
+    await swipe(80, 310);
+    await expect(page).toHaveURL(/#\/classes$/);
+    await swipe(80, 310);
+    await expect(page).toHaveURL(/#\/home$/);
+    await swipe(80, 310);
+    await expect(page).toHaveURL(/#\/home$/);
+    const about = page.getByRole('link', { name: 'About', exact: true });
+    await expect(about).toBeHidden();
+    await page.getByRole('button', { name: 'Menu', exact: true }).click();
+    await expect(page).toHaveURL(/#\/home$/);
+    await about.click();
+    await expect(about).toBeHidden();
+    await expect(page).toHaveURL(/#\/about$/);
+    await swipe(310, 80);
+    await swipe(80, 310);
+    await expect(page).toHaveURL(/#\/about$/);
+  });
+});
+
 test('fresh profile, class, skill, quests, XP, counts and reload', async ({
   page,
 }) => {
@@ -16,6 +81,7 @@ test('fresh profile, class, skill, quests, XP, counts and reload', async ({
     page.getByRole('heading', { name: 'Adventurer', exact: true }),
   ).toBeVisible();
   await expect(page.locator('#portrait-quest-count')).toHaveText('0');
+  await page.getByRole('button', { name: 'Menu', exact: true }).click();
   await page.getByRole('link', { name: 'About', exact: true }).click();
   await page.getByLabel('First name').fill('Taylor');
   await page.getByLabel('Last name').fill('Quest');
@@ -137,6 +203,7 @@ test('hash navigation, history, reload and a repository subpath', async ({
   await expect(
     page.getByRole('heading', { name: 'Your quests', exact: true }),
   ).toBeVisible();
+  await page.getByRole('button', { name: 'Menu', exact: true }).click();
   await page.getByRole('link', { name: 'About', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'About you' })).toBeFocused();
   await page.goBack();
@@ -208,6 +275,7 @@ test('storage-denied sessions remain usable and clearly report the limitation', 
     page.getByRole('heading', { name: 'Adventurer', exact: true }),
   ).toBeVisible();
   await expect(page.getByRole('alert')).toContainText('Storage denied');
+  await page.getByRole('button', { name: 'Menu', exact: true }).click();
   await page.getByRole('link', { name: 'About', exact: true }).click();
   await page.getByLabel('First name').fill('Session only');
   await page.getByRole('button', { name: 'Save profile' }).click();

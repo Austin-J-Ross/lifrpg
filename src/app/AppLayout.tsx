@@ -1,22 +1,31 @@
-import { useEffect } from 'react';
-import { NavLink, Link, Outlet, useLocation } from 'react-router';
+import { useEffect, useRef, useState, type TouchEvent } from 'react';
+import { NavLink, Link, Outlet, useLocation, useNavigate } from 'react-router';
 import { useApp } from '../state/AppProvider';
 import { CharacterPortrait } from '../features/profile/CharacterPortrait';
 const pages = [
   ['home', 'Home', '▦'],
-  ['about', 'About', '○'],
   ['classes', 'Classes', '♣'],
   ['quests', 'Quests', '⚑'],
 ];
 export function AppLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const menuButton = useRef<HTMLButtonElement>(null);
+  const [menuLocation, setMenuLocation] = useState<string | null>(null);
+  const menuOpen = menuLocation === location.key;
+  const swipeStart = useRef<{ x: number; y: number; pageIndex: number } | null>(
+    null,
+  );
   const { state, notice, storageError, demo } = useApp();
   const name =
     [state.profile.firstName, state.profile.lastName]
       .filter(Boolean)
       .join(' ') || 'Adventurer';
+  const pageIndex = pages.findIndex(([key]) => location.pathname === '/' + key);
   const page =
-    pages.find(([key]) => location.pathname === '/' + key)?.[1] || 'Home';
+    location.pathname === '/about'
+      ? 'About'
+      : (pages[pageIndex]?.[1] ?? 'Home');
   const isHome = page === 'Home';
   useEffect(() => {
     document.title = 'Quest | ' + page;
@@ -25,12 +34,92 @@ export function AppLayout() {
       .querySelector<HTMLElement>('main h1')
       ?.focus({ preventScroll: true });
   }, [location.pathname, page]);
+
+  function startSwipe(event: TouchEvent<HTMLElement>) {
+    swipeStart.current = null;
+    if (
+      pageIndex < 0 ||
+      event.touches.length !== 1 ||
+      (event.target instanceof Element &&
+        event.target.closest(
+          '.about-tray, dialog, input, textarea, select, [contenteditable]',
+        ))
+    )
+      return;
+
+    const touch = event.touches[0];
+    swipeStart.current = {
+      x: touch.clientX,
+      y: touch.clientY,
+      pageIndex,
+    };
+  }
+
+  function finishSwipe(event: TouchEvent<HTMLElement>) {
+    const start = swipeStart.current;
+    swipeStart.current = null;
+    if (!start || start.pageIndex !== pageIndex || event.touches.length) return;
+
+    const touch = event.changedTouches[0];
+    if (!touch) return;
+    const x = touch.clientX - start.x;
+    const y = touch.clientY - start.y;
+    if (Math.abs(x) < 55 || Math.abs(x) < Math.abs(y) * 1.5) return;
+
+    const next = pages[pageIndex + (x < 0 ? 1 : -1)];
+    if (next) void navigate('/' + next[0]);
+  }
+
   return (
-    <div className={isHome ? 'app character-screen' : 'app'}>
+    <div
+      className={[
+        'app',
+        isHome && 'character-screen',
+        pageIndex >= 0 && 'swipe-area',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+      onTouchStartCapture={startSwipe}
+      onTouchEndCapture={finishSwipe}
+      onTouchCancel={() => {
+        swipeStart.current = null;
+      }}
+    >
       <aside className="sidebar">
-        <Link className="brand" to="/home">
-          <span aria-hidden="true">✧</span> QUEST
-        </Link>
+        <div className="sidebar-heading">
+          <div
+            className="about-tray"
+            onKeyDown={(event) => {
+              if (event.key !== 'Escape' || !menuOpen) return;
+              setMenuLocation(null);
+              menuButton.current?.focus();
+            }}
+          >
+            <button
+              ref={menuButton}
+              type="button"
+              className="about-menu"
+              aria-expanded={menuOpen}
+              aria-controls="about-tray-links"
+              onClick={() => setMenuLocation(menuOpen ? null : location.key)}
+            >
+              <span className="sr-only">Menu</span>
+              <span className="hamburger-lines" aria-hidden="true" />
+            </button>
+            <div
+              className="tray-links"
+              id="about-tray-links"
+              hidden={!menuOpen}
+            >
+              <NavLink to="/about" onClick={() => setMenuLocation(null)}>
+                About
+              </NavLink>
+            </div>
+          </div>
+          <Link className="brand" to="/home">
+            <span aria-hidden="true">✧</span> QUEST
+          </Link>
+        </div>
         <p className="tagline">A LITTLE BETTER, EVERY DAY</p>
         <nav className="nav" aria-label="Main navigation">
           {pages.map(([key, label, icon]) => (
