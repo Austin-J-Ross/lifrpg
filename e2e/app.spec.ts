@@ -52,62 +52,95 @@ test.describe('touch navigation', () => {
     await expect(menu).toHaveAttribute('aria-expanded', 'false');
   });
 
-  test('scrolls Today quests horizontally and completes them without changing pages', async ({
+  test('filters the vertical loadout, quick-adds a habit, and completes by swiping', async ({
     page,
   }) => {
+    await page.setViewportSize({ width: 390, height: 520 });
+    await page.clock.setFixedTime(new Date('2026-11-24T15:00:00Z'));
     await page.addInitScript(
       (data) =>
         localStorage.setItem('quest-character-v1', JSON.stringify(data)),
       legacy,
     );
     await page.goto(origin + '/#/home');
-    const today = page.getByRole('region', { name: 'Today' });
-    const cards = today.getByRole('article');
-    await expect(cards).toHaveCount(3);
-    const complete = cards.first().getByRole('button', { name: /^Complete / });
-    await expect(complete).toHaveText('Complete');
-    await expect(complete).toBeInViewport();
-    const box = await cards.first().boundingBox();
-    if (!box) throw new Error('Today quest cards are missing');
-    const client = await page.context().newCDPSession(page);
-    const y = Math.round(box.y + 20);
-    await client.send('Input.dispatchTouchEvent', {
-      type: 'touchStart',
-      touchPoints: [{ x: 280, y }],
+    const today = page.getByRole('region', { name: 'Quest loadout' });
+    const rows = today.getByRole('article');
+    await expect(rows).toHaveCount(3);
+    await expect(rows.first()).toContainText('Finish the bathroom trim');
+    await expect(
+      today
+        .getByRole('region', { name: 'Today', exact: true })
+        .getByRole('heading'),
+    ).toHaveText('Today · 2');
+    await expect(rows.first()).toContainText('Damage: −6 Shelter');
+    await expect(today.getByText(/overdue/i)).toHaveCount(0);
+    await expect(today.locator('time')).toHaveCount(0);
+    await expect(
+      today
+        .getByRole('region', { name: 'Upcoming', exact: true })
+        .getByRole('heading'),
+    ).toHaveText('Upcoming · 1');
+    expect(
+      await rows.first().evaluate((row) => {
+        const list = row.parentElement!.parentElement!;
+        return list.scrollHeight > list.clientHeight;
+      }),
+    ).toBe(true);
+    await today.getByRole('button', { name: 'M (Medium)', exact: true }).tap();
+    await expect(rows).toHaveCount(1);
+    await expect(rows.first()).toContainText('Plan a date night');
+    await today.getByRole('button', { name: 'Add task' }).tap();
+    await page.getByLabel('Quest objective').fill('Take a walk');
+    await page
+      .getByRole('combobox', { name: 'Type', exact: true })
+      .selectOption('habit');
+    await page.getByRole('button', { name: 'Create Habit' }).click();
+    await expect(rows).toHaveCount(2);
+    await expect(
+      rows
+        .filter({ hasText: 'Take a walk' })
+        .getByRole('img', { name: 'Habit' }),
+    ).toBeVisible();
+    await today
+      .getByRole('button', { name: 'M (Medium)', exact: true })
+      .click();
+    const quest = today.getByRole('button', {
+      name: 'Complete Finish the bathroom trim',
     });
-    for (const x of [240, 200, 160, 120, 80]) {
+    const box = await quest.boundingBox();
+    if (!box) throw new Error('Quest row not visible');
+    const client = await page.context().newCDPSession(page);
+    const y = Math.round(box.y + box.height / 2);
+    const startX = Math.round(box.x + 12);
+    async function swipe(fraction: number) {
       await client.send('Input.dispatchTouchEvent', {
-        type: 'touchMove',
-        touchPoints: [{ x, y }],
+        type: 'touchStart',
+        touchPoints: [{ x: startX, y }],
+      });
+      for (const step of [0.2, 0.4, 0.6, 0.8, 1]) {
+        const x = Math.round(startX + box!.width * fraction * step);
+        await client.send('Input.dispatchTouchEvent', {
+          type: 'touchMove',
+          touchPoints: [{ x, y }],
+        });
+      }
+      await client.send('Input.dispatchTouchEvent', {
+        type: 'touchEnd',
+        touchPoints: [],
       });
     }
-    await client.send('Input.dispatchTouchEvent', {
-      type: 'touchEnd',
-      touchPoints: [],
-    });
-    await expect
-      .poll(() =>
-        cards.first().evaluate((card) => card.parentElement!.scrollLeft),
-      )
-      .toBeGreaterThan(0);
+    await swipe(0.4);
+    await expect(quest).toHaveCSS('transform', 'none');
+    await expect(rows).toHaveCount(4);
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await swipe(0.7);
+    const reward = page.getByRole('dialog', { name: 'Quest complete' });
+    await expect(
+      reward.getByRole('progressbar', { name: 'General experience' }),
+    ).toBeVisible();
+    await reward.getByRole('button', { name: 'Done', exact: true }).click();
+    await expect(rows).toHaveCount(3);
     await expect(page).toHaveURL(/#\/home$/);
-    await cards
-      .nth(1)
-      .getByRole('button', { name: /^Complete / })
-      .click();
-    await page.getByRole('button', { name: 'Confirm completion' }).click();
-    await page.getByRole('button', { name: 'Done', exact: true }).click();
-    await expect(cards).toHaveCount(2);
-    await expect(
-      today.getByRole('link', { name: '2 active quests. View quests' }),
-    ).toBeVisible();
-    await page
-      .getByRole('navigation', { name: 'Main navigation' })
-      .getByRole('link', { name: 'Quests' })
-      .click();
-    await expect(
-      page.getByRole('heading', { name: 'Your quests' }),
-    ).toBeVisible();
   });
 });
 
@@ -118,7 +151,9 @@ test('fresh profile, class, skill, quests, XP, counts and reload', async ({
   await expect(
     page.getByRole('heading', { name: 'Adventurer', exact: true }),
   ).toBeVisible();
-  await expect(page.locator('#portrait-quest-count')).toHaveText('0');
+  await expect(
+    page.getByRole('region', { name: 'Quest loadout' }).getByRole('article'),
+  ).toHaveCount(0);
   await page.getByRole('button', { name: 'Menu', exact: true }).click();
   await page.getByRole('link', { name: 'About', exact: true }).click();
   await page.getByLabel('First name').fill('Taylor');
@@ -210,9 +245,11 @@ test('fresh profile, class, skill, quests, XP, counts and reload', async ({
     page.getByRole('heading', { name: 'Taylor Quest', exact: true }),
   ).toBeVisible();
   await page.reload();
-  await expect(page.locator('#portrait-quest-count')).toHaveText('0');
+  await expect(
+    page.getByRole('region', { name: 'Quest loadout' }).getByRole('article'),
+  ).toHaveCount(0);
 });
-test('migrates legacy saves and displays the requested badge on desktop and mobile', async ({
+test('migrates legacy saves and displays the quest loadout on desktop and mobile', async ({
   page,
 }) => {
   await page.addInitScript(
@@ -220,7 +257,9 @@ test('migrates legacy saves and displays the requested badge on desktop and mobi
     legacy,
   );
   await page.goto(origin + '/#/home');
-  await expect(page.locator('#portrait-quest-count')).toHaveText('3');
+  await expect(
+    page.getByRole('region', { name: 'Quest loadout' }).getByRole('article'),
+  ).toHaveCount(3);
   const migration = await page.evaluate(() => ({
     old: localStorage.getItem('quest-character-v1'),
     backup: localStorage.getItem('quest-character-v1-backup'),
@@ -241,12 +280,12 @@ test('migrates legacy saves and displays the requested badge on desktop and mobi
     path: 'artifacts/quest-desktop.png',
     fullPage: true,
   });
-  await expect(
-    page.getByRole('link', { name: '3 active quests. View quests' }),
-  ).toHaveText('3active quests');
+  await expect(page.locator('#portrait-quest-badge')).toHaveCount(0);
   for (const width of [375, 320]) {
     await page.setViewportSize({ width, height: 812 });
-    await expect(page.locator('#portrait-quest-badge')).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Add task', exact: true }),
+    ).toBeVisible();
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth,
@@ -255,7 +294,10 @@ test('migrates legacy saves and displays the requested badge on desktop and mobi
   }
   await page.setViewportSize({ width: 375, height: 812 });
   await page.screenshot({ path: 'artifacts/quest-mobile.png', fullPage: true });
-  await page.locator('#portrait-quest-badge').focus();
+  await page
+    .getByRole('navigation')
+    .getByRole('link', { name: 'Quests', exact: true })
+    .focus();
   await page.keyboard.press('Enter');
   await expect(
     page.getByRole('heading', { name: 'Your quests', exact: true }),

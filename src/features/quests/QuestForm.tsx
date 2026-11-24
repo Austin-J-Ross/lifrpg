@@ -1,21 +1,30 @@
 import { createId } from '../../domain/identity';
 import styles from './QuestForm.module.css';
 import { useState, type FormEvent } from 'react';
+import { Link } from 'react-router';
 import { useApp } from '../../state/AppProvider';
 import { questSizes, type QuestSize } from '../../domain/definitions';
+import type { QuestKind } from '../../domain/models';
 import {
   dayDeadline,
   localDateValue,
   deadlineForDate,
 } from '../../domain/deadlines';
 import { Modal } from '../../components/ui/Modal';
-export function QuestForm({ onClose }: { onClose: () => void }) {
+export function QuestForm({
+  onClose,
+  initialSize = 'medium',
+}: {
+  onClose: () => void;
+  initialSize?: QuestSize;
+}) {
   const { state, send, notify } = useApp();
   const [title, setTitle] = useState(''),
     [classId, setClassId] = useState(state.classes[0]?.id || ''),
     [skillId, setSkillId] = useState(state.classes[0]?.skills[0]?.id || ''),
     [date, setDate] = useState(localDateValue(new Date(dayDeadline(1)))),
-    [size, setSize] = useState<QuestSize>('medium'),
+    [size, setSize] = useState<QuestSize>(initialSize),
+    [kind, setKind] = useState<QuestKind>('quest'),
     [noDamage, setNoDamage] = useState(false);
   const entry = state.classes.find((c) => c.id === classId);
   function submit(e: FormEvent) {
@@ -34,12 +43,28 @@ export function QuestForm({ onClose }: { onClose: () => void }) {
         skillId,
         deadline,
         size,
+        kind,
         noDamage,
       })
     ) {
-      notify('Quest added. Your next step is ready.');
+      notify(kind === 'habit' ? 'Habit added.' : 'Quest added.');
       onClose();
     }
+  }
+  if (!state.classes.length) {
+    return (
+      <Modal title="New quest" onClose={onClose}>
+        <p>Quests need a class and skill. Create a class to get started.</p>
+        <div className="actions">
+          <button type="button" onClick={onClose}>
+            Cancel
+          </button>
+          <Link className="add-button" to="/classes">
+            Go to Classes
+          </Link>
+        </div>
+      </Modal>
+    );
   }
   return (
     <Modal title="A new little adventure" onClose={onClose}>
@@ -53,6 +78,18 @@ export function QuestForm({ onClose }: { onClose: () => void }) {
             maxLength={90}
             autoFocus
           />
+        </label>
+        <label>
+          Type
+          <select
+            value={kind}
+            onChange={(event) =>
+              setKind(event.target.value === 'habit' ? 'habit' : 'quest')
+            }
+          >
+            <option value="quest">Quest</option>
+            <option value="habit">Habit</option>
+          </select>
         </label>
         <label>
           Class
@@ -149,7 +186,7 @@ export function QuestForm({ onClose }: { onClose: () => void }) {
             Cancel
           </button>
           <button className="primary" disabled={!entry}>
-            Create Quest
+            {kind === 'habit' ? 'Create Habit' : 'Create Quest'}
           </button>
         </div>
       </form>

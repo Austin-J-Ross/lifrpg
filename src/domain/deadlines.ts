@@ -1,4 +1,16 @@
 export const DAY = 86400000;
+export function daysPastDeadline(deadline: number, now: number) {
+  function calendarDay(timestamp: number) {
+    const date = new Date(timestamp);
+    const utc = new Date(0);
+    return utc.setUTCFullYear(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate(),
+    );
+  }
+  return Math.max(0, (calendarDay(now) - calendarDay(deadline)) / DAY);
+}
 export function localDateValue(date: Date) {
   return [
     date.getFullYear(),

@@ -13,6 +13,15 @@ export const questSizes = {
   veryLarge: { label: 'Very large', xp: 400, rate: 16 },
 };
 export type QuestSize = keyof typeof questSizes;
+export const questSizeKeys = Object.keys(questSizes) as QuestSize[];
+
+export function questSizeFor(xp: number): QuestSize {
+  return questSizeKeys.reduce((closest, size) =>
+    Math.abs(questSizes[size].xp - xp) < Math.abs(questSizes[closest].xp - xp)
+      ? size
+      : closest,
+  );
+}
 export function classDomain(category: Category, general: Domain): Domain {
   return category === 'general'
     ? general

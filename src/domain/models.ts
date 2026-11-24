@@ -1,4 +1,5 @@
 import type { Measurement } from './measurements';
+import type { QuestSize } from './definitions';
 
 export const domainNames = [
   'Shelter',
@@ -40,6 +41,8 @@ export interface CharacterClass {
   tint: string;
   skills: Skill[];
 }
+export const questKinds = ['quest', 'habit'] as const;
+export type QuestKind = (typeof questKinds)[number];
 export interface Quest {
   id: string;
   title: string;
@@ -49,6 +52,8 @@ export interface Quest {
   xp: number;
   rate: number;
   noDamage: boolean;
+  kind?: QuestKind;
+  size?: QuestSize;
 }
 export interface AppState {
   version: 2;

@@ -4,6 +4,7 @@ import type {
   Category,
   Domain,
   Quest,
+  QuestKind,
 } from '../domain/models';
 import { classDomain, questSizes, type QuestSize } from '../domain/definitions';
 import {
@@ -49,6 +50,7 @@ export type Action =
       skillId: string;
       deadline: number;
       size: QuestSize;
+      kind?: QuestKind;
       noDamage: boolean;
     }
   | { type: 'quest/complete'; id: string }
@@ -215,6 +217,8 @@ export function reduceState(state: AppState, action: Action): AppState {
         xp: size.xp,
         rate: action.noDamage ? 0 : size.rate,
         noDamage: action.noDamage,
+        size: action.size,
+        ...(action.kind && { kind: action.kind }),
       };
       next = { ...state, quests: [...state.quests, quest] };
       break;

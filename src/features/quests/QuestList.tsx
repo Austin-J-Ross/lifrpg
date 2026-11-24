@@ -2,38 +2,55 @@ import { useClock } from '../../components/ui/useClock';
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { useApp } from '../../state/AppProvider';
-import { DAY } from '../../domain/deadlines';
+import { DAY, daysPastDeadline } from '../../domain/deadlines';
+import { questSizeFor, type QuestSize } from '../../domain/definitions';
+import { skillProgress } from '../../domain/progression';
 import type { Quest } from '../../domain/models';
 import { EmptyState } from '../../components/ui/EmptyState';
 import styles from './QuestList.module.css';
-import { QuestCompletion } from './QuestCompletion';
+import { QuestCompletion, type QuestAward } from './QuestCompletion';
+import { QuestSwipeRow } from './QuestSwipeRow';
 function QuestItem({
   quest,
   onComplete,
   now,
-  today,
+  onSwipe,
 }: {
   quest: Quest;
   onComplete: () => void;
   now: number;
-  today: boolean;
+  onSwipe?: () => boolean;
 }) {
   const { state } = useApp();
   const c = state.classes.find((c) => c.id === quest.classId)!;
   const skill = c.skills.find((s) => s.id === quest.skillId)!;
   const overdue = quest.deadline < now,
     days = Math.max(1, Math.ceil(Math.abs(quest.deadline - now) / DAY));
+  if (onSwipe) {
+    return (
+      <QuestSwipeRow
+        quest={quest}
+        entry={c}
+        skillName={skill.name}
+        damage={
+          quest.noDamage
+            ? 0
+            : daysPastDeadline(quest.deadline, now) * quest.rate
+        }
+        onSwipe={onSwipe}
+        onConfirm={onComplete}
+      />
+    );
+  }
   return (
     <article className={styles.item + ' ' + (overdue ? styles.overdue : '')}>
       <button
-        className={today ? 'add-button ' + styles.complete : 'complete-button'}
+        className="complete-button"
         type="button"
         data-complete={quest.id}
         aria-label={'Complete ' + quest.title}
         onClick={onComplete}
-      >
-        {today && 'Complete'}
-      </button>
+      />
       <div className={styles.copy}>
         <h3>{quest.title}</h3>
         <p className={styles.className}>
@@ -74,12 +91,18 @@ function QuestItem({
 export function QuestList({
   layout,
   emptyAction,
+  sizeFilter = 'all',
 }: {
   layout?: 'today';
   emptyAction?: '/classes' | '/quests';
+  sizeFilter?: QuestSize | 'all';
 }) {
-  const { state } = useApp();
-  const [confirmation, setConfirmation] = useState<Quest | null>(null);
+  const { state, send } = useApp();
+  const [completion, setCompletion] = useState<{
+    quest: Quest;
+    award?: QuestAward;
+    failed?: boolean;
+  } | null>(null);
   const now = useClock();
   const ref = useRef<HTMLDivElement>(null),
     focus = useRef(false);
@@ -89,54 +112,119 @@ export function QuestList({
       (
         ref.current?.querySelector<HTMLButtonElement>('[data-complete]') ||
         document.querySelector<HTMLElement>(
-          '#today-empty-action, #add-quest, #portrait-quest-badge',
+          '#today-empty-action, #add-home-quest, #add-quest, #portrait-quest-badge',
         )
       )?.focus();
     }
-  }, [confirmation]);
+  }, [completion]);
+  function complete(quest: Quest) {
+    const skill = state.classes
+      .find(({ id }) => id === quest.classId)
+      ?.skills.find(({ id }) => id === quest.skillId);
+    if (!skill || !state.quests.some(({ id }) => id === quest.id)) return false;
+    if (!send({ type: 'quest/complete', id: quest.id })) {
+      setCompletion({ quest, failed: true });
+      return false;
+    }
+    setCompletion({
+      quest,
+      award: {
+        skill: skill.name,
+        before: skillProgress(skill.xp),
+        after: skillProgress(skill.xp + quest.xp),
+      },
+    });
+    return true;
+  }
   const today = layout === 'today';
-  const empty = today ? (
-    <div className={styles.todayEmpty}>
-      <p>No active quests.</p>
-      <Link
-        id="today-empty-action"
-        className="add-button"
-        to={emptyAction ?? '/quests'}
-      >
-        {emptyAction === '/classes'
-          ? 'Create a class to start'
-          : 'Go to Quests'}
-      </Link>
-    </div>
-  ) : (
-    <EmptyState>All clear. A little breathing room, well earned.</EmptyState>
-  );
+  const empty =
+    today && state.quests.length ? (
+      <EmptyState>No quests of this size.</EmptyState>
+    ) : today ? (
+      <div className={styles.todayEmpty}>
+        <p>No quests yet.</p>
+        <Link
+          id="today-empty-action"
+          className="add-button"
+          to={emptyAction ?? '/quests'}
+        >
+          {emptyAction === '/classes'
+            ? 'Create a class to start'
+            : 'Go to Quests'}
+        </Link>
+      </div>
+    ) : (
+      <EmptyState>All clear. A little breathing room, well earned.</EmptyState>
+    );
   const quests = today
-    ? [...state.quests].sort((a, b) => a.deadline - b.deadline)
+    ? state.quests
+        .filter(
+          (quest) =>
+            sizeFilter === 'all' ||
+            (quest.size ?? questSizeFor(quest.xp)) === sizeFilter,
+        )
+        .sort((a, b) => a.deadline - b.deadline)
     : state.quests;
+  const tomorrow = new Date(now);
+  tomorrow.setHours(0, 0, 0, 0);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const groups = today
+    ? [
+        {
+          label: 'Today',
+          quests: quests.filter(
+            ({ deadline }) => deadline < tomorrow.getTime(),
+          ),
+        },
+        {
+          label: 'Upcoming',
+          quests: quests.filter(
+            ({ deadline }) => deadline >= tomorrow.getTime(),
+          ),
+        },
+      ]
+    : [];
+  const renderQuest = (quest: Quest) => (
+    <QuestItem
+      key={quest.id}
+      quest={quest}
+      now={now}
+      onSwipe={today ? () => complete(quest) : undefined}
+      onComplete={() => setCompletion({ quest })}
+    />
+  );
   return (
     <>
-      {quests.length ? (
-        <div ref={ref} className={today ? styles.today : undefined}>
-          {quests.map((q) => (
-            <QuestItem
-              key={q.id}
-              quest={q}
-              now={now}
-              today={today}
-              onComplete={() => setConfirmation(q)}
-            />
+      {today ? (
+        <div key={sizeFilter} ref={ref} className={styles.today}>
+          {groups.map((group) => (
+            <section
+              className={styles.dueGroup}
+              key={group.label}
+              aria-label={group.label}
+            >
+              <h2 className={styles.dueBar}>
+                {group.label} · {group.quests.length}
+              </h2>
+              {group.quests.map(renderQuest)}
+            </section>
           ))}
+          {!quests.length && empty}
         </div>
+      ) : quests.length ? (
+        <div ref={ref}>{quests.map(renderQuest)}</div>
       ) : (
         empty
       )}
-      {confirmation && (
+      {completion && (
         <QuestCompletion
-          quest={confirmation}
+          quest={completion.quest}
+          award={completion.award}
+          failed={completion.failed}
+          onConfirm={() => complete(completion.quest)}
           onClose={(completed) => {
             focus.current = completed;
-            setConfirmation(null);
+            setCompletion(null);
           }}
         />
       )}

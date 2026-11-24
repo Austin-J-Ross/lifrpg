@@ -38,7 +38,9 @@ test('development modules and explicit demo boot through Vite transforms', async
     await expect(
       page.getByRole('heading', { name: 'Douglas', exact: true }),
     ).toBeVisible();
-    await expect(page.locator('#portrait-quest-count')).toHaveText('3');
+    await expect(
+      page.getByRole('region', { name: 'Quest loadout' }).getByRole('article'),
+    ).toHaveCount(3);
     await expect(page.getByRole('alert')).toContainText('Demo session');
     await fs.mkdir('artifacts', { recursive: true });
     await page.screenshot({

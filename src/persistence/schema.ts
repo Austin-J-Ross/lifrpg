@@ -1,11 +1,13 @@
 import {
   categories,
   domainNames,
+  questKinds,
   type AppState,
   type CharacterClass,
   type Profile,
   emptyState,
 } from '../domain/models';
+import { questSizeKeys } from '../domain/definitions';
 import {
   measurementKinds,
   validMeasurementDate,
@@ -128,6 +130,8 @@ export function validateState(value: unknown): AppState {
       xp: number(q.xp),
       rate,
       noDamage: q.noDamage,
+      ...(q.kind === undefined ? {} : { kind: oneOf(q.kind, questKinds) }),
+      ...(q.size === undefined ? {} : { size: oneOf(q.size, questSizeKeys) }),
     };
   });
   unique(quests.map((q) => q.id));

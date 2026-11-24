@@ -1,45 +1,44 @@
-import { useState } from 'react';
 import { Modal } from '../../components/ui/Modal';
 import { ProgressBar } from '../../components/ui/ProgressBar';
 import type { Quest } from '../../domain/models';
-import { skillProgress } from '../../domain/progression';
+import type { skillProgress } from '../../domain/progression';
 import { useApp } from '../../state/AppProvider';
+
+export interface QuestAward {
+  skill: string;
+  before: ReturnType<typeof skillProgress>;
+  after: ReturnType<typeof skillProgress>;
+}
 
 export function QuestCompletion({
   quest,
+  award,
+  onConfirm,
+  failed,
   onClose,
 }: {
   quest: Quest;
+  award?: QuestAward;
+  onConfirm: () => void;
+  failed?: boolean;
   onClose: (completed: boolean) => void;
 }) {
-  const { state, send, notice } = useApp();
-  const [showError, setShowError] = useState(false);
-  const [award, setAward] = useState<{
-    skill: string;
-    before: ReturnType<typeof skillProgress>;
-    after: ReturnType<typeof skillProgress>;
-  } | null>(null);
+  const { state, notice } = useApp();
   const skill = state.classes
     .find(({ id }) => id === quest.classId)
     ?.skills.find(({ id }) => id === quest.skillId);
 
-  function confirm() {
-    if (!skill || award || !state.quests.some(({ id }) => id === quest.id))
-      return;
-    if (send({ type: 'quest/complete', id: quest.id })) {
-      setAward({
-        skill: skill.name,
-        before: skillProgress(skill.xp),
-        after: skillProgress(skill.xp + quest.xp),
-      });
-    } else {
-      setShowError(true);
-    }
-  }
+  const kind = quest.kind === 'habit' ? 'habit' : 'quest';
 
   return (
     <Modal
-      title={award ? 'Quest complete' : 'Complete quest?'}
+      title={
+        award
+          ? kind === 'habit'
+            ? 'Habit complete'
+            : 'Quest complete'
+          : 'Complete ' + kind + '?'
+      }
       onClose={() => onClose(Boolean(award))}
     >
       <p>{quest.title}</p>
@@ -86,12 +85,12 @@ export function QuestCompletion({
           <p className="form-note">
             Earn {quest.xp} XP for {skill?.name ?? 'the linked skill'}.
           </p>
-          {showError && notice && <p role="alert">{notice}</p>}
+          {failed && notice && <p role="alert">{notice}</p>}
           <div className="actions">
             <button type="button" autoFocus onClick={() => onClose(false)}>
               Cancel
             </button>
-            <button className="primary" type="button" onClick={confirm}>
+            <button className="primary" type="button" onClick={onConfirm}>
               Confirm completion
             </button>
           </div>
