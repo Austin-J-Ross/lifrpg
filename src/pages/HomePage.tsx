@@ -100,9 +100,10 @@ export function HomePage() {
             id="add-home-quest"
             className="add-button loadout-add"
             type="button"
+            aria-label="Add task"
             onClick={() => setAddingQuest(true)}
           >
-            <span aria-hidden="true">+</span> Add task
+            <span aria-hidden="true">+</span>
           </button>
         </div>
         <p className="loadout-hint">Slide right to complete</p>
