@@ -33,6 +33,9 @@ export function AboutMenu() {
         <NavLink to="/classes" onClick={() => setMenuLocation(null)}>
           Classes
         </NavLink>
+        <NavLink to="/domain-health" onClick={() => setMenuLocation(null)}>
+          Domain Health
+        </NavLink>
         <NavLink to="/about" onClick={() => setMenuLocation(null)}>
           About
         </NavLink>

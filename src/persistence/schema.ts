@@ -8,6 +8,7 @@ import {
   emptyState,
 } from '../domain/models';
 import { questSizeKeys } from '../domain/definitions';
+import { maxDomainHp, type DomainHealth } from '../domain/domainHealth';
 import {
   isMonthlyCost,
   lifeStatKeys,
@@ -155,6 +156,26 @@ function lifeStats(value: unknown): LifeStats {
   return stats;
 }
 
+function domainHealth(value: unknown): DomainHealth {
+  const raw = record(value);
+  const at = number(raw.at);
+  if (!Number.isFinite(new Date(at).getTime()))
+    throw Error('Invalid saved health date.');
+  const domains = record(raw.domains);
+  const readings = domainNames.map((name) => {
+    const domain = record(domains[name]);
+    const hp = number(domain.hp);
+    const healing = number(domain.healing);
+    if (hp > maxDomainHp || healing > maxDomainHp)
+      throw Error('Invalid saved domain HP.');
+    return [name, { hp, healing }];
+  });
+  return {
+    at,
+    domains: Object.fromEntries(readings) as DomainHealth['domains'],
+  };
+}
+
 export function validateState(value: unknown): AppState {
   const saved = record(value);
   if (saved.version !== 2)
@@ -229,6 +250,9 @@ export function validateState(value: unknown): AppState {
       ...(q.kind === undefined ? {} : { kind: oneOf(q.kind, questKinds) }),
       ...(q.size === undefined ? {} : { size: oneOf(q.size, questSizeKeys) }),
       ...(completedAt === undefined ? {} : { completedAt }),
+      ...(q.damageDealt === undefined
+        ? {}
+        : { damageDealt: number(q.damageDealt) }),
     };
   });
   unique(quests.map((q) => q.id));
@@ -264,6 +288,9 @@ export function validateState(value: unknown): AppState {
       ? {}
       : { mental: mentalProfile(saved.mental) }),
     ...(saved.life === undefined ? {} : { life: lifeStats(saved.life) }),
+    ...(saved.domainHealth === undefined
+      ? {}
+      : { domainHealth: domainHealth(saved.domainHealth) }),
   };
 }
 export function decodeState(value: unknown): AppState {

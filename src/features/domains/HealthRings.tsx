@@ -2,6 +2,8 @@ import styles from './HealthRings.module.css';
 import { useId, useState, type CSSProperties } from 'react';
 import { domains } from '../../domain/definitions';
 import type { Domain } from '../../domain/models';
+import { maxDomainHp } from '../../domain/domainHealth';
+import { useApp } from '../../state/AppProvider';
 function Icon({ name }: { name: Domain }) {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -28,9 +30,16 @@ function Icon({ name }: { name: Domain }) {
 }
 
 export function HealthRings() {
+  const {
+    state: { domainHealth },
+  } = useApp();
   const [selected, setSelected] = useState<Domain | null>(null);
   const trayId = useId();
-  const active = domains.find(({ name }) => name === selected);
+  const readings = domains.map((domain) => ({
+    ...domain,
+    value: domainHealth?.domains[domain.name].hp ?? maxDomainHp,
+  }));
+  const active = readings.find(({ name }) => name === selected);
 
   return (
     <div className={styles.health}>
@@ -39,7 +48,7 @@ export function HealthRings() {
         role="group"
         aria-label="Domain health"
       >
-        {domains.map((domain) => (
+        {readings.map((domain) => (
           <button
             key={domain.name}
             type="button"
@@ -71,14 +80,16 @@ export function HealthRings() {
           >
             <div className={styles.heading}>
               <h3>{active.name} health</h3>
-              <span>{active.value}% example health</span>
+              <span>
+                {active.value} / {maxDomainHp} HP
+              </span>
             </div>
             <div
               className={styles.meter}
               role="meter"
-              aria-label={active.name + ' example health'}
+              aria-label={active.name + ' health'}
               aria-valuemin={0}
-              aria-valuemax={100}
+              aria-valuemax={maxDomainHp}
               aria-valuenow={active.value}
             >
               <span />

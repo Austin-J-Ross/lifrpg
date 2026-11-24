@@ -2,7 +2,7 @@ import { useClock } from '../../components/ui/useClock';
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { useApp } from '../../state/AppProvider';
-import { DAY, daysPastDeadline } from '../../domain/deadlines';
+import { DAY } from '../../domain/deadlines';
 import { questSizeFor, type QuestSize } from '../../domain/definitions';
 import { skillProgress } from '../../domain/progression';
 import type { Quest } from '../../domain/models';
@@ -35,11 +35,7 @@ function QuestItem({
         quest={quest}
         entry={c}
         skillName={skill.name}
-        damage={
-          quest.noDamage
-            ? 0
-            : daysPastDeadline(quest.deadline, now) * quest.rate
-        }
+        damage={quest.damageDealt ?? 0}
         onSwipe={onSwipe}
         onConfirm={onComplete}
       />
@@ -97,7 +93,7 @@ function QuestItem({
           {c.domain} ·{' '}
           {quest.noDamage || !quest.rate
             ? 'No damage'
-            : 'Planned −' + quest.rate + '/day'}
+            : '−' + quest.rate + '/day'}
         </span>
       </div>
     </article>

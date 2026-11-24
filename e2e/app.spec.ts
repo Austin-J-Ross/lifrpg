@@ -8,6 +8,53 @@ const legacy = JSON.parse(
 );
 import fs from 'node:fs/promises';
 const origin = 'http://quest.local';
+test('domain health updates at midnight and heals at 7 a.m. without duplicates after reload', async ({
+  page,
+}) => {
+  await page.clock.install({ time: new Date('2026-11-25T04:58:00Z') });
+  await page.addInitScript((data) => {
+    if (!localStorage.getItem('quest-character-v2'))
+      localStorage.setItem('quest-character-v1', JSON.stringify(data));
+  }, legacy);
+  await page.goto(origin + '/#/home');
+  await page.getByRole('button', { name: 'Menu', exact: true }).click();
+  await page.getByRole('link', { name: 'Domain Health', exact: true }).click();
+  const shelter = page.getByRole('meter', {
+    name: 'Shelter health',
+    exact: true,
+  });
+  const mental = page.getByRole('meter', {
+    name: 'Mental health',
+    exact: true,
+  });
+  await expect(shelter).toHaveAttribute('value', '100');
+  await expect(mental).toHaveAttribute('value', '100');
+  await page.clock.fastForward('02:00');
+  await expect(shelter).toHaveAttribute('value', '97');
+  await expect(mental).toHaveAttribute('value', '98');
+  await page.getByRole('button', { name: 'Edit healing' }).click();
+  await page.getByLabel('Shelter healing (HP)', { exact: true }).fill('1');
+  await page.getByRole('button', { name: 'Save healing' }).click();
+  await page.clock.fastForward('07:00:00');
+  await expect(shelter).toHaveAttribute('value', '98');
+  await expect(mental).toHaveAttribute('value', '100');
+  await page.reload();
+  await expect(shelter).toHaveAttribute('value', '98');
+  await page
+    .getByRole('navigation')
+    .getByRole('link', { name: 'Home', exact: true })
+    .click();
+  await page
+    .getByRole('button', { name: 'Shelter health', exact: true })
+    .click();
+  await expect(
+    page.getByRole('meter', { name: 'Shelter health', exact: true }),
+  ).toHaveAttribute('aria-valuenow', '98');
+  await expect(
+    page.getByText('Damage: −3 Shelter', { exact: true }),
+  ).toBeVisible();
+});
+
 test('validates and saves monthly costs and home HP independently', async ({
   page,
 }) => {
@@ -286,13 +333,13 @@ test('opens a health tray with a meter and static metric labels', async ({
   await mental.click();
   await expect(mental).toHaveAttribute('aria-expanded', 'true');
   await expect(
-    page.getByRole('meter', { name: 'Mental example health' }),
-  ).toHaveAttribute('aria-valuenow', '62');
+    page.getByRole('meter', { name: 'Mental health' }),
+  ).toHaveAttribute('aria-valuenow', '100');
   await expect(page.getByText('Sleep', { exact: true })).toBeVisible();
   await physical.click();
   await expect(mental).toHaveAttribute('aria-expanded', 'false');
   const tray = page.getByRole('region', { name: 'Physical health' });
-  await expect(tray.getByRole('meter')).toHaveAttribute('aria-valuenow', '81');
+  await expect(tray.getByRole('meter')).toHaveAttribute('aria-valuenow', '100');
   await expect(tray.getByRole('listitem')).toHaveText(['Weight', 'Calories']);
   await tray.getByText('Weight', { exact: true }).click();
   await expect(page).toHaveURL(/#\/home$/);
@@ -341,7 +388,7 @@ test.describe('touch navigation', () => {
         .getByRole('region', { name: 'Today', exact: true })
         .getByRole('heading'),
     ).toHaveText('Today · 2');
-    await expect(rows.first()).toContainText('Damage: −6 Shelter');
+    await expect(rows.first()).toContainText('Damage: 0 Shelter');
     await expect(today.getByText(/overdue/i)).toHaveCount(0);
     await expect(today.locator('time')).toHaveCount(0);
     await expect(

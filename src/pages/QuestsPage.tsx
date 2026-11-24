@@ -40,8 +40,7 @@ export function QuestsPage() {
         </header>
         <QuestList onEdit={setForm} />
         <p className="quest-footer">
-          Damage rates are planned penalties. Automatic health damage is not
-          implemented.
+          Quest damage is applied at midnight local time.
         </p>
       </section>
       <section

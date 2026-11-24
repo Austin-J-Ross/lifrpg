@@ -179,7 +179,7 @@ export function QuestForm({
         <label className="damage-toggle">
           <span>
             No damage
-            <small>Exclude this quest from planned overdue penalties.</small>
+            <small>Skip daily domain damage for this quest.</small>
           </span>
           <input
             type="checkbox"
@@ -219,8 +219,7 @@ export function QuestForm({
             ))}
           </div>
           <p className={styles['size-help']}>
-            XP on completion. Damage rates are planned; automatic damage is not
-            implemented.
+            XP on completion. Damage starts at midnight after the deadline.
           </p>
         </fieldset>
         {showError && notice && <p role="alert">{notice}</p>}

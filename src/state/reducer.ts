@@ -22,6 +22,7 @@ import { validateState } from '../persistence/schema';
 import type { BodyStatus, PhysicalStats, UnitSystem } from '../domain/physical';
 import type { MentalLogEntry, MentalStats } from '../domain/mental';
 import type { LifeStats } from '../domain/life';
+import { initializeDomainHealth } from '../domain/domainHealth';
 export type Action =
   | { type: 'profile/save'; profile: Profile }
   | { type: 'physical/stats-save'; stats: PhysicalStats }
@@ -30,6 +31,11 @@ export type Action =
   | { type: 'mental/stats-save'; stats: MentalStats }
   | { type: 'mental/log'; entry: MentalLogEntry }
   | { type: 'life/stats-save'; stats: LifeStats }
+  | {
+      type: 'domain-health/healing-save';
+      healing: Record<Domain, number>;
+      at: number;
+    }
   | {
       type: 'class/create';
       id: string;
@@ -74,6 +80,15 @@ export function reduceState(state: AppState, action: Action): AppState {
   switch (action.type) {
     case 'state/import':
       return validateState(action.state);
+    case 'domain-health/healing-save': {
+      const health = state.domainHealth ?? initializeDomainHealth(action.at);
+      const domains = { ...health.domains };
+      for (const key of Object.keys(domains) as Domain[]) {
+        domains[key] = { ...domains[key], healing: action.healing[key] };
+      }
+      next = { ...state, domainHealth: { ...health, domains } };
+      break;
+    }
     case 'life/stats-save':
       next = { ...state, life: { ...state.life, ...action.stats } };
       break;
@@ -299,6 +314,9 @@ export function reduceState(state: AppState, action: Action): AppState {
         noDamage: action.noDamage,
         size: action.size,
         ...(action.kind && { kind: action.kind }),
+        ...(previous?.damageDealt === undefined
+          ? {}
+          : { damageDealt: previous.damageDealt }),
       };
       next = {
         ...state,

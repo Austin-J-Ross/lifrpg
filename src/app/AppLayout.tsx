@@ -13,6 +13,7 @@ const pageTitles: Record<string, string> = {
   '/backups': 'Backups',
   '/quests': 'Quest Log',
   '/mental': 'Mental Stats',
+  '/domain-health': 'Domain Health',
 };
 export function AppLayout() {
   const location = useLocation();

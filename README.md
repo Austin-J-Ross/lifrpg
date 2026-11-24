@@ -77,8 +77,8 @@ For GitHub Pages, configure a workflow to build and upload dist/ with the offici
 
 Skills store cumulative XP; the cost to advance from level L is ceil(100 * 1.5^(L - 1)). Classes keep their original separate XP threshold and level progression. A quest awards XP once, and deadlines remain at 11:59 PM local time.
 
-The domain health rings open trays with example health bars and metric labels. Existing measurement readings stay in browser storage and JSON backups.
+Domain health starts at 100 HP per domain. Active quests with damage enabled charge their daily damage at midnight after their deadline. Domains heal at 7 a.m. local time, with a default of 5 HP per domain. **Domain Health** in the hamburger menu lets you edit the healing amounts. Missed updates are applied when Quest reopens. Existing measurement readings stay in browser storage and JSON backups.
 
-Quest damage settings retain their planned rates, but automatic damage is not implemented. Accounts, cloud synchronization, notifications and automatic health tracking remain separate product work. See plan.md for the completed restructuring checklist.
+Accounts, cloud synchronization, notifications and automatic health tracking from external measurements remain separate product work. See plan.md for the completed restructuring checklist.
 
 # lifrpg

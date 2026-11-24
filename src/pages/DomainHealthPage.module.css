@@ -1,0 +1,59 @@
+.panel {
+  max-width: 680px;
+  margin-inline: auto;
+}
+
+.title,
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.title p,
+.readings p {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.title button {
+  flex-shrink: 0;
+  min-height: 44px;
+}
+
+.readings {
+  display: grid;
+  gap: 12px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.readings li {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--metal-inset);
+}
+
+.row span {
+  color: var(--green);
+  font-variant-numeric: tabular-nums;
+}
+
+.readings meter {
+  width: 100%;
+  height: 12px;
+}
+
+.readings meter::-webkit-meter-bar {
+  border-color: #514a40;
+  background: #3b342f;
+}
+
+.readings meter::-webkit-meter-optimum-value {
+  background: #9ab97c;
+}

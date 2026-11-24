@@ -3,6 +3,7 @@ import type { QuestSize } from './definitions';
 import type { PhysicalProfile } from './physical';
 import type { MentalProfile } from './mental';
 import type { LifeStats } from './life';
+import type { DomainHealth } from './domainHealth';
 
 export const domainNames = [
   'Shelter',
@@ -58,6 +59,7 @@ export interface Quest {
   kind?: QuestKind;
   size?: QuestSize;
   completedAt?: number;
+  damageDealt?: number;
 }
 export interface AppState {
   version: 2;
@@ -68,6 +70,7 @@ export interface AppState {
   physical?: PhysicalProfile;
   mental?: MentalProfile;
   life?: LifeStats;
+  domainHealth?: DomainHealth;
 }
 export function emptyState(): AppState {
   return {
