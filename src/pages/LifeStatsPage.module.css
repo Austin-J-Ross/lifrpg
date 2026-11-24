@@ -1,0 +1,43 @@
+.layout {
+  display: grid;
+  gap: 14px;
+  max-width: 680px;
+  margin-inline: auto;
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.edit {
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: var(--green);
+  font-size: 12px;
+  text-decoration: underline;
+}
+
+.readings {
+  margin: 0;
+}
+
+.readings div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+
+.readings dt {
+  color: var(--muted);
+}
+
+.readings dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}

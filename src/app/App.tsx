@@ -9,6 +9,7 @@ import { ClassesPage } from '../pages/ClassesPage';
 import { QuestsPage } from '../pages/QuestsPage';
 import { PhysicalStatsPage } from '../pages/PhysicalStatsPage';
 import { MentalStatsPage } from '../pages/MentalStatsPage';
+import { LifeStatsPage } from '../pages/LifeStatsPage';
 export function App({ demoState }: { demoState?: AppState }) {
   return (
     <AppProvider demoState={demoState}>
@@ -23,6 +24,7 @@ export function App({ demoState }: { demoState?: AppState }) {
             <Route path="quests" element={<QuestsPage />} />
             <Route path="physical" element={<PhysicalStatsPage />} />
             <Route path="mental" element={<MentalStatsPage />} />
+            <Route path="life" element={<LifeStatsPage />} />
             <Route path="*" element={<Navigate to="/home" replace />} />
           </Route>
         </Routes>

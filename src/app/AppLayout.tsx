@@ -3,11 +3,12 @@ import { NavLink, Link, Outlet, useLocation } from 'react-router';
 import { useApp } from '../state/AppProvider';
 const pages = [
   ['home', 'Home', '▦'],
-  ['classes', 'Classes', '♣'],
   ['physical', 'Phys. Stats', '♙'],
   ['mental', 'Mntl. Stats', '◇'],
+  ['life', 'Life Stats', '⌂'],
 ];
 const pageTitles: Record<string, string> = {
+  '/classes': 'Classes',
   '/about': 'About',
   '/backups': 'Backups',
   '/quests': 'Quest Log',

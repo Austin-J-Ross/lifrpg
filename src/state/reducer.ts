@@ -21,6 +21,7 @@ import {
 import { validateState } from '../persistence/schema';
 import type { BodyStatus, PhysicalStats, UnitSystem } from '../domain/physical';
 import type { MentalLogEntry, MentalStats } from '../domain/mental';
+import type { LifeStats } from '../domain/life';
 export type Action =
   | { type: 'profile/save'; profile: Profile }
   | { type: 'physical/stats-save'; stats: PhysicalStats }
@@ -28,6 +29,7 @@ export type Action =
   | { type: 'physical/status-log'; status: BodyStatus }
   | { type: 'mental/stats-save'; stats: MentalStats }
   | { type: 'mental/log'; entry: MentalLogEntry }
+  | { type: 'life/stats-save'; stats: LifeStats }
   | {
       type: 'class/create';
       id: string;
@@ -72,6 +74,9 @@ export function reduceState(state: AppState, action: Action): AppState {
   switch (action.type) {
     case 'state/import':
       return validateState(action.state);
+    case 'life/stats-save':
+      next = { ...state, life: { ...state.life, ...action.stats } };
+      break;
     case 'mental/stats-save':
       next = {
         ...state,

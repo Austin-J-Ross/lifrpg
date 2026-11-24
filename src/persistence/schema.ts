@@ -9,6 +9,12 @@ import {
 } from '../domain/models';
 import { questSizeKeys } from '../domain/definitions';
 import {
+  isMonthlyCost,
+  lifeStatKeys,
+  maxCostCents,
+  type LifeStats,
+} from '../domain/life';
+import {
   mentalStatKeys,
   sentiments,
   type MentalProfile,
@@ -136,6 +142,19 @@ function mentalProfile(value: unknown): MentalProfile {
   return { stats, logs };
 }
 
+function lifeStats(value: unknown): LifeStats {
+  const raw = record(value);
+  const stats: LifeStats = {};
+  for (const key of lifeStatKeys) {
+    if (raw[key] === undefined) continue;
+    const amount = number(raw[key]);
+    if (isMonthlyCost(key) && amount > maxCostCents)
+      throw Error('Invalid saved Life Stats value.');
+    stats[key] = amount;
+  }
+  return stats;
+}
+
 export function validateState(value: unknown): AppState {
   const saved = record(value);
   if (saved.version !== 2)
@@ -244,6 +263,7 @@ export function validateState(value: unknown): AppState {
     ...(saved.mental === undefined
       ? {}
       : { mental: mentalProfile(saved.mental) }),
+    ...(saved.life === undefined ? {} : { life: lifeStats(saved.life) }),
   };
 }
 export function decodeState(value: unknown): AppState {

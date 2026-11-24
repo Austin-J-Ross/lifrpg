@@ -30,6 +30,9 @@ export function AboutMenu() {
         <NavLink to="/quests" onClick={() => setMenuLocation(null)}>
           Quest Log
         </NavLink>
+        <NavLink to="/classes" onClick={() => setMenuLocation(null)}>
+          Classes
+        </NavLink>
         <NavLink to="/about" onClick={() => setMenuLocation(null)}>
           About
         </NavLink>

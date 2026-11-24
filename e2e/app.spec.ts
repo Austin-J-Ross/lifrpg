@@ -8,6 +8,62 @@ const legacy = JSON.parse(
 );
 import fs from 'node:fs/promises';
 const origin = 'http://quest.local';
+test('validates and saves monthly costs and home HP independently', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(origin + '/#/home');
+  await page
+    .getByRole('navigation')
+    .getByRole('link', { name: 'Life Stats' })
+    .click();
+  await page.getByRole('button', { name: 'Edit Monthly Cost Targets' }).click();
+  const costs = page.getByRole('dialog', { name: 'Edit Monthly Cost Targets' });
+  const subscriptions = costs.getByLabel('Subscriptions ($)', { exact: true });
+  await subscriptions.fill('-2');
+  await costs.getByRole('button', { name: 'Save stats' }).click();
+  await expect(costs).toBeVisible();
+  await subscriptions.fill('21.125');
+  expect(
+    await subscriptions.evaluate(
+      (field: HTMLInputElement) => field.validity.stepMismatch,
+    ),
+  ).toBe(true);
+  await subscriptions.fill('21.19');
+  await costs.getByLabel('Utilities ($)', { exact: true }).fill('125.50');
+  await costs.getByRole('button', { name: 'Save stats' }).click();
+  await page.getByRole('button', { name: 'Edit Home' }).click();
+  const home = page.getByRole('dialog', { name: 'Edit Home' });
+  const stock = home.getByLabel('Stock (total HP)', { exact: true });
+  await stock.fill('-1');
+  await home.getByRole('button', { name: 'Save stats' }).click();
+  await expect(home).toBeVisible();
+  await stock.fill('9.5');
+  expect(
+    await stock.evaluate(
+      (field: HTMLInputElement) => field.validity.stepMismatch,
+    ),
+  ).toBe(true);
+  await stock.fill('150');
+  await home.getByRole('button', { name: 'Save stats' }).click();
+  await page.reload();
+  await expect(
+    page
+      .getByRole('region', { name: 'Monthly Cost Targets' })
+      .getByText('$21.19', { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page
+      .getByRole('region', { name: 'Monthly Cost Targets' })
+      .getByText('$125.50', { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page
+      .getByRole('region', { name: 'Home', exact: true })
+      .getByText('150 HP total', { exact: true }),
+  ).toBeVisible();
+});
+
 test('About saves optional names and a photo independently', async ({
   page,
 }) => {
@@ -379,6 +435,7 @@ test('fresh profile, class, skill, quests, XP, counts and reload', async ({
   await page.getByLabel('First name').fill('Taylor');
   await page.getByLabel('Last name').fill('Quest');
   await page.getByRole('button', { name: 'Save profile' }).click();
+  await page.getByRole('button', { name: 'Menu', exact: true }).click();
   await page.getByRole('link', { name: 'Classes', exact: true }).click();
   await page.getByRole('button', { name: '+ New class', exact: true }).click();
   await page.getByLabel('Class name').fill('Writer');
@@ -468,6 +525,7 @@ test('fresh profile, class, skill, quests, XP, counts and reload', async ({
       .xp,
   ).toBe(100);
   expect(saved.classes[0].xp).toBe(200);
+  await page.getByRole('button', { name: 'Menu', exact: true }).click();
   await page.getByRole('link', { name: 'Classes', exact: true }).click();
   await page.getByRole('button', { name: 'Edit class Writer' }).click();
   await page.getByLabel('Class name').fill('Author');
