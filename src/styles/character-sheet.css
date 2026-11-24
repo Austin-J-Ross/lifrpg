@@ -1,20 +1,20 @@
-.character-screen {
+.app {
   background: radial-gradient(ellipse at 55% 0%, #302a22, #141418 65%);
   color: #f2e8d7;
 }
 
-.character-screen .sidebar {
+.app .sidebar {
   background: linear-gradient(150deg, #292724, #161618 65%);
   border-inline-end: 1px solid #625640;
 }
 
-.character-screen .nav a:is(.active, :hover) {
+.app .nav a:is(.active, :hover) {
   color: #ffe2a0;
   background: linear-gradient(#484031, #2a241e);
   box-shadow: inset 0 0 0 1px #786447;
 }
 
-.character-screen main {
+main {
   width: 100%;
   max-width: 1120px;
   min-width: 0;
@@ -25,9 +25,6 @@
 .character-screen .storage-warning {
   max-width: 480px;
   margin: 0 auto 12px;
-  color: #fff0ce;
-  background: #31271c;
-  border-color: #8b7046;
 }
 
 .character-sheet {
@@ -52,11 +49,18 @@
   background: linear-gradient(#282522, #131417);
 }
 
-.character-sheet h1 {
+.app :is(h1, h2) {
   font-family: Georgia, serif;
   font-weight: 500;
   letter-spacing: normal;
   color: #f3d89e;
+}
+
+.character-overview {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 1fr);
+  gap: 6px;
+  align-items: stretch;
 }
 
 .full-body-portrait {
@@ -122,6 +126,14 @@
 }
 
 @media (max-width: 680px) {
+  main {
+    padding: 20px 14px;
+  }
+
+  .character-screen main {
+    padding-inline: 8px;
+  }
+
   .character-screen .sidebar-bottom {
     display: none;
   }

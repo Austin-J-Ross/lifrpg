@@ -9,7 +9,7 @@
   top: 0;
   height: 100vh;
   padding: 32px 22px;
-  background: #272e28;
+  background: #211d1a;
   color: #f4f3e9;
   display: flex;
   flex-direction: column;
@@ -32,7 +32,7 @@
   place-items: center;
   width: 44px;
   height: 44px;
-  border: 1px solid #a5b09f66;
+  border: 1px solid #8e7452;
   border-radius: 6px;
   background: transparent;
   color: #f4f3e9;
@@ -52,9 +52,9 @@
   left: 0;
   min-width: 132px;
   padding: 4px;
-  border: 1px solid #a5b09f66;
+  border: 1px solid #c9bda866;
   border-radius: 6px;
-  background: #272e28;
+  background: var(--metal-panel);
   box-shadow: 0 5px 14px #0005;
 }
 .tray-links a {
@@ -82,7 +82,7 @@
   z-index: 1;
 }
 .brand span {
-  color: #c6d2a9;
+  color: #e4c080;
   font-size: 32px;
 }
 .tagline {
@@ -102,7 +102,7 @@
   min-height: 44px;
   padding: 10px 13px;
   border-radius: 7px;
-  color: #b4beae;
+  color: #d6c7ad;
   font-size: 12px;
 }
 .nav a.active {
@@ -125,14 +125,14 @@
 .sidebar-bottom > small {
   font-size: 8px;
   letter-spacing: 1.5px;
-  color: #a0ac96;
+  color: #c9bda8;
 }
 .sidebar-bottom > p {
   margin: 15px 0 24px;
   font:
     20px/1.5 Georgia,
     serif;
-  color: #cbd2bd;
+  color: #ddcdb2;
 }
 .user {
   display: flex;
@@ -151,15 +151,8 @@
 .user small {
   display: block;
   margin-top: 4px;
-  color: #a0ac96;
+  color: #c9bda8;
   font-size: 10px;
-}
-.portrait-quest-badge:hover main {
-  width: 100%;
-  max-width: 1120px;
-  min-width: 0;
-  margin: 0 auto;
-  padding: 32px clamp(24px, 4vw, 56px) 28px;
 }
 .topline {
   display: flex;
@@ -172,13 +165,13 @@
   font-size: 11px;
 }
 .topline b {
-  color: #555e50;
+  color: var(--green);
   font-weight: 500;
   margin-left: 5px;
 }
 .preview {
   flex-shrink: 0;
-  border: 1px solid #d8ddce;
+  border: 1px solid var(--line);
   border-radius: 20px;
   padding: 5px 9px;
   font-size: 9px;

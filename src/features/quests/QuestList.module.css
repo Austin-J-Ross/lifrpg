@@ -9,9 +9,9 @@
 .overdue {
   margin: 4px -10px;
   padding: 16px 10px;
-  border: 1px solid #f1e0d6;
+  border: 1px solid #765243;
   border-radius: 8px;
-  background: #fcf3ee;
+  background: #352724;
 }
 .copy {
   padding-top: 5px;
@@ -32,7 +32,7 @@
   padding-top: 8px;
   white-space: nowrap;
   font-size: 11px;
-  color: #60764e;
+  color: #bdd493;
   font-weight: 650;
 }
 .meta {
@@ -47,8 +47,8 @@
   color: var(--muted);
 }
 .deadline {
-  color: #997045;
+  color: #e5bc82;
 }
 .damage {
-  color: #ad6046;
+  color: #eea290;
 }

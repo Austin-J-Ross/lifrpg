@@ -40,7 +40,8 @@
   white-space: nowrap;
 }
 .surface {
-  background: var(--surface);
+  background: var(--metal-panel);
+  box-shadow: var(--metal-edge);
   border: 1px solid var(--line);
   border-radius: 12px;
   padding: 24px;
@@ -66,7 +67,7 @@ dialog textarea {
   min-width: 0;
   padding: 10px;
   margin-top: 7px;
-  border: 1px solid #d8dbce;
+  border: 1px solid var(--line);
   border-radius: 6px;
   background: var(--paper);
   color: var(--ink);
@@ -88,9 +89,9 @@ textarea {
 }
 .small-button {
   padding: 10px;
-  border: 1px solid #d8dbce;
+  border: 1px solid var(--line);
   border-radius: 6px;
-  background: #edf0e6;
+  background: var(--metal-button);
   color: var(--green);
   white-space: nowrap;
   font-size: 10px;

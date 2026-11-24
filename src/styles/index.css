@@ -26,9 +26,10 @@
 .storage-warning {
   margin-top: 16px;
   padding: 12px;
-  border: 1px solid #cfaa7d;
+  border: 1px solid #8b7046;
   border-radius: 8px;
-  background: #fff4df;
+  background: #31271c;
+  color: #fff0ce;
   font-size: 12px;
   line-height: 1.7;
 }

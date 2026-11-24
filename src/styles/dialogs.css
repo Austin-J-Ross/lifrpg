@@ -6,11 +6,12 @@ dialog {
   padding: 26px;
   border: 1px solid var(--line);
   border-radius: 14px;
-  background: var(--paper);
+  background: var(--metal-panel);
+  box-shadow: var(--metal-edge);
   color: var(--ink);
 }
 dialog::backdrop {
-  background: #20271f88;
+  background: #100d11bc;
 }
 dialog h2 {
   margin-bottom: 22px;
@@ -27,7 +28,7 @@ dialog select {
   min-width: 0;
   margin-top: 7px;
   padding: 10px;
-  border: 1px solid #d8dbce;
+  border: 1px solid var(--line);
   border-radius: 6px;
   background: var(--surface);
   color: inherit;
@@ -46,13 +47,13 @@ dialog select {
 .actions button {
   min-height: 40px;
   padding: 9px 15px;
-  border: 1px solid #d8dbce;
+  border: 1px solid var(--line);
   border-radius: 6px;
   background: var(--surface);
 }
 .actions .primary {
-  background: var(--green);
-  color: white;
+  background: var(--metal-button);
+  color: var(--green);
   border-color: var(--green);
 }
 #toast {
@@ -64,7 +65,7 @@ dialog select {
   max-width: calc(100vw - 32px);
   padding: 13px 20px;
   border-radius: 9px;
-  background: #303d2d;
+  background: #3d3023;
   color: white;
   box-shadow: 0 5px 25px #0002;
   font-size: 12px;

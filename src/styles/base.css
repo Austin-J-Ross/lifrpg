@@ -1,11 +1,16 @@
 /* Base */
 :root {
-  --paper: #f6f5f0;
-  --surface: #fffefa;
-  --ink: #292e29;
-  --muted: #777c70;
-  --line: #e1e3d8;
-  --green: #53674c;
+  --paper: #181619;
+  --surface: #292628;
+  --ink: #f2e8d7;
+  --muted: #c9bda8;
+  --line: #665640;
+  --green: #f0cf89;
+  color-scheme: dark;
+  --metal-panel: linear-gradient(145deg, #3a3530, #242225 55%, #2c2825);
+  --metal-inset: linear-gradient(#2c2723, #19181a);
+  --metal-edge: inset 0 0 0 2px #171618, inset 0 0 0 3px #564937;
+  --metal-button: linear-gradient(#635137, #352b21);
   font-family: 'Segoe UI', system-ui, sans-serif;
   color: var(--ink);
   background: var(--paper);

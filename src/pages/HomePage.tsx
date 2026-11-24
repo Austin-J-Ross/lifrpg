@@ -14,18 +14,20 @@ export function HomePage() {
             'Adventurer'}
         </h1>
       </header>
-      <div className="full-body-portrait">
-        {profile.portrait ? (
-          <img src={profile.portrait} alt="Full-body character portrait" />
-        ) : (
-          <Link className="portrait-placeholder" to="/about">
-            <span aria-hidden="true">◇</span>
-            Add a full-body photo
-          </Link>
-        )}
-        <QuestBadge />
+      <div className="character-overview">
+        <div className="full-body-portrait">
+          {profile.portrait ? (
+            <img src={profile.portrait} alt="Full-body character portrait" />
+          ) : (
+            <Link className="portrait-placeholder" to="/about">
+              <span aria-hidden="true">◇</span>
+              Add a full-body photo
+            </Link>
+          )}
+          <QuestBadge />
+        </div>
+        <HealthRings />
       </div>
-      <HealthRings />
     </section>
   );
 }
