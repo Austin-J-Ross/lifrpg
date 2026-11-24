@@ -70,7 +70,10 @@ export function reduceState(state: AppState, action: Action): AppState {
     case 'mental/stats-save':
       next = {
         ...state,
-        mental: { stats: action.stats, logs: state.mental?.logs ?? [] },
+        mental: {
+          stats: { ...state.mental?.stats, ...action.stats },
+          logs: state.mental?.logs ?? [],
+        },
       };
       break;
     case 'mental/log':
@@ -87,7 +90,7 @@ export function reduceState(state: AppState, action: Action): AppState {
         ...state,
         physical: {
           ...state.physical,
-          stats: action.stats,
+          stats: { ...state.physical?.stats, ...action.stats },
           statuses: state.physical?.statuses ?? [],
         },
       };
@@ -119,7 +122,6 @@ export function reduceState(state: AppState, action: Action): AppState {
           value.trim(),
         ]),
       ) as unknown as Profile;
-      if (!profile.firstName) throw Error('Enter your first name.');
       next = { ...state, profile };
       break;
     }

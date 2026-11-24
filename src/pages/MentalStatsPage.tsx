@@ -92,9 +92,11 @@ function MentalLogForm({ onClose }: { onClose: () => void }) {
 }
 
 function MentalStatsEditor({
+  group,
   stats,
   onClose,
 }: {
+  group: (typeof groups)[number];
   stats: MentalStats;
   onClose: () => void;
 }) {
@@ -103,31 +105,29 @@ function MentalStatsEditor({
 
   function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (send({ type: 'mental/stats-save', stats: draft })) onClose();
+    const updates = Object.fromEntries(
+      group.fields.map(([key]) => [key, draft[key] ?? '']),
+    );
+    if (send({ type: 'mental/stats-save', stats: updates })) onClose();
   }
 
   return (
-    <Modal title="Edit mental stats" onClose={onClose}>
+    <Modal title={'Edit ' + group.title} onClose={onClose}>
       <form className={styles.editor} onSubmit={save}>
-        {groups.map(({ title, fields }) => (
-          <fieldset className={styles.fieldset} key={title}>
-            <legend>{title}</legend>
-            <div className={styles.columns}>
-              {fields.map(([key, label]) => (
-                <label key={key}>
-                  {label}
-                  <input
-                    value={draft[key] ?? ''}
-                    maxLength={80}
-                    onChange={(event) =>
-                      setDraft({ ...draft, [key]: event.target.value })
-                    }
-                  />
-                </label>
-              ))}
-            </div>
-          </fieldset>
-        ))}
+        <div className={styles.columns}>
+          {group.fields.map(([key, label]) => (
+            <label key={key}>
+              {label}
+              <input
+                value={draft[key] ?? ''}
+                maxLength={80}
+                onChange={(event) =>
+                  setDraft({ ...draft, [key]: event.target.value })
+                }
+              />
+            </label>
+          ))}
+        </div>
         <div className="actions">
           <button type="button" onClick={onClose}>
             Cancel
@@ -146,7 +146,7 @@ export function MentalStatsPage() {
     state: { mental },
   } = useApp();
   const [logging, setLogging] = useState(false);
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState<(typeof groups)[number] | null>(null);
   const stats = mental?.stats ?? {};
   const logs = [...(mental?.logs ?? [])].sort((a, b) => b.at - a.at);
 
@@ -169,32 +169,32 @@ export function MentalStatsPage() {
         </div>
 
         <section className="surface" aria-labelledby="mental-stats-heading">
-          <div className={styles.statsTitle}>
-            <h2 id="mental-stats-heading">Stats</h2>
-            <button
-              type="button"
-              className={styles.edit}
-              aria-label="Edit mental stats"
-              onClick={() => setEditing(true)}
-            >
-              (edit)
-            </button>
-          </div>
-          {groups.map(({ title, fields }) => (
-            <div className={styles.statGroup} key={title}>
-              <h3>{title}</h3>
+          <h2 id="mental-stats-heading">Stats</h2>
+          {groups.map((group) => (
+            <div className={styles.statGroup} key={group.title}>
+              <div className={styles.statsTitle}>
+                <h3>{group.title}</h3>
+                <button
+                  type="button"
+                  className={styles.edit}
+                  aria-label={'Edit ' + group.title}
+                  onClick={() => setEditing(group)}
+                >
+                  (edit)
+                </button>
+              </div>
               <dl className={styles.columns}>
-                {fields.map(([key, label]) => (
+                {group.fields.map(([key, label]) => (
                   <div key={key} className={styles.reading}>
                     <dt>{label}</dt>
                     <dd>{stats[key] || '—'}</dd>
                   </div>
                 ))}
               </dl>
-              {title === 'Mental Stats' && (
+              {group.title === 'Mental Stats' && (
                 <p className={styles.note}>* Affected by sleep and stress.</p>
               )}
-              {title === 'Personality (Big Five)' && (
+              {group.title === 'Personality (Big Five)' && (
                 <a
                   className={styles.testLink}
                   href="https://openpsychometrics.org/tests/IPIP-BFFM/"
@@ -239,7 +239,11 @@ export function MentalStatsPage() {
       </div>
       {logging && <MentalLogForm onClose={() => setLogging(false)} />}
       {editing && (
-        <MentalStatsEditor stats={stats} onClose={() => setEditing(false)} />
+        <MentalStatsEditor
+          group={editing}
+          stats={stats}
+          onClose={() => setEditing(null)}
+        />
       )}
     </section>
   );

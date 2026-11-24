@@ -27,8 +27,14 @@ export function AboutMenu() {
         <span className="hamburger-lines" aria-hidden="true" />
       </button>
       <div className="tray-links" id="about-tray-links" hidden={!menuOpen}>
+        <NavLink to="/quests" onClick={() => setMenuLocation(null)}>
+          Quest Log
+        </NavLink>
         <NavLink to="/about" onClick={() => setMenuLocation(null)}>
           About
+        </NavLink>
+        <NavLink to="/backups" onClick={() => setMenuLocation(null)}>
+          Backups
         </NavLink>
       </div>
     </div>

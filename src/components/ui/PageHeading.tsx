@@ -4,10 +4,12 @@ import { QuestBadge } from '../../features/quests/QuestBadge';
 export function PageHeading({
   title,
   description,
+  showQuestBadge = true,
   children,
 }: {
   title: string;
   description?: string;
+  showQuestBadge?: boolean;
   children?: ReactNode;
 }) {
   return (
@@ -17,10 +19,12 @@ export function PageHeading({
         {description && <p>{description}</p>}
       </div>
       <AboutMenu />
-      <div className="page-heading-actions">
-        <QuestBadge />
-        {children}
-      </div>
+      {(showQuestBadge || children) && (
+        <div className="page-heading-actions">
+          {showQuestBadge && <QuestBadge />}
+          {children}
+        </div>
+      )}
     </header>
   );
 }

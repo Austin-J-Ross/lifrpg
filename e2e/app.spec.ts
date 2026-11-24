@@ -8,6 +8,41 @@ const legacy = JSON.parse(
 );
 import fs from 'node:fs/promises';
 const origin = 'http://quest.local';
+test('About saves optional names and a photo independently', async ({
+  page,
+}) => {
+  await page.goto(origin + '/#/about');
+  await expect(page.getByRole('textbox')).toHaveCount(2);
+  await expect(page.getByRole('button', { name: 'Export backup' })).toHaveCount(
+    0,
+  );
+  const save = page.getByRole('button', { name: 'Save profile' });
+  await save.click();
+  await expect(page.getByRole('status')).toHaveText('Profile saved.');
+
+  const image = await page.evaluate(() => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 20;
+    canvas.height = 30;
+    return canvas.toDataURL('image/png');
+  });
+  await page.getByLabel('Full-body photo (optional)').setInputFiles({
+    name: 'portrait.png',
+    mimeType: 'image/png',
+    buffer: Buffer.from(image.split(',')[1], 'base64'),
+  });
+  await save.click();
+  await expect(
+    page.getByRole('button', { name: 'Remove current photo' }),
+  ).toBeVisible();
+  await page.getByRole('link', { name: 'Home', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Adventurer' })).toBeVisible();
+  await expect(page.locator('img.character-icon')).toHaveAttribute(
+    'src',
+    image,
+  );
+});
+
 test('saves mental stats and a log with one sentiment per entry', async ({
   page,
 }) => {
@@ -15,7 +50,7 @@ test('saves mental stats and a log with one sentiment per entry', async ({
   await page.goto(origin + '/#/home');
   await page
     .getByRole('navigation')
-    .getByRole('link', { name: 'Mental Stats' })
+    .getByRole('link', { name: 'Mntl. Stats', exact: true })
     .click();
   await page.getByRole('button', { name: 'Log', exact: true }).click();
   const form = page.getByRole('dialog', { name: 'Log a mental status' });
@@ -26,13 +61,30 @@ test('saves mental stats and a log with one sentiment per entry', async ({
   await form.getByLabel('Title', { exact: true }).fill('Reading session');
   await form.getByLabel('Description').fill('Finished a chapter.');
   await form.getByRole('button', { name: 'Save log' }).click();
-  await page.getByRole('button', { name: 'Edit mental stats' }).click();
-  const editor = page.getByRole('dialog', { name: 'Edit mental stats' });
+  await page
+    .getByRole('button', { name: 'Edit Activity Weekly Average', exact: true })
+    .click();
+  const editor = page.getByRole('dialog', {
+    name: 'Edit Activity Weekly Average',
+  });
+  await expect(editor.getByLabel('Focus*', { exact: true })).toHaveCount(0);
   await editor.getByLabel('Reading Hours', { exact: true }).fill('1.5 h');
   await editor.getByRole('button', { name: 'Save stats' }).click();
+  await page
+    .getByRole('button', { name: 'Edit Mental Stats', exact: true })
+    .click();
+  const mental = page.getByRole('dialog', {
+    name: 'Edit Mental Stats',
+    exact: true,
+  });
+  await mental.getByLabel('Focus*', { exact: true }).fill('80%');
+  await mental.getByRole('button', { name: 'Save stats' }).click();
   await page.reload();
   await expect(
     page.getByRole('region', { name: 'Stats', exact: true }).getByText('1.5 h'),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('region', { name: 'Stats', exact: true }).getByText('80%'),
   ).toBeVisible();
   const log = page.getByRole('region', { name: 'Log', exact: true });
   await expect(log.getByRole('listitem')).toContainText('Reading session');
@@ -68,10 +120,17 @@ test('logs a portrait status and saves physical stats across reloads', async ({
   const dialog = page.getByRole('dialog', { name: 'Right arm status' });
   await dialog.getByLabel('Status message').fill('Sore after practice.');
   await dialog.getByRole('button', { name: 'Log status' }).click();
-  await page.getByRole('button', { name: 'Edit stats' }).click();
-  const editor = page.getByRole('dialog', { name: 'Edit physical stats' });
-  await editor.getByLabel('Height', { exact: true }).fill('175 cm');
-  await editor.getByLabel('Weight', { exact: true }).fill('72 kg');
+  await page.getByRole('button', { name: 'Edit General' }).click();
+  const general = page.getByRole('dialog', { name: 'Edit General' });
+  await general.getByLabel('Height', { exact: true }).fill('175 cm');
+  await general.getByLabel('Weight', { exact: true }).fill('72 kg');
+  await expect(
+    general.getByLabel('Strength (arms)', { exact: true }),
+  ).toHaveCount(0);
+  await general.getByRole('button', { name: 'Save stats' }).click();
+  await page.getByRole('button', { name: 'Edit Physical Stats' }).click();
+  const editor = page.getByRole('dialog', { name: 'Edit Physical Stats' });
+  await expect(editor.getByLabel('Height', { exact: true })).toHaveCount(0);
   await editor.getByLabel('Strength (arms)', { exact: true }).fill('8 reps');
   await editor.getByRole('button', { name: 'Save stats' }).click();
   await page.reload();
@@ -382,10 +441,13 @@ test('migrates legacy saves and displays the quest loadout on desktop and mobile
   }
   await page.setViewportSize({ width: 375, height: 812 });
   await page.screenshot({ path: 'artifacts/quest-mobile.png', fullPage: true });
-  await page
-    .getByRole('navigation')
-    .getByRole('link', { name: 'Quests', exact: true })
-    .focus();
+  await expect(
+    page
+      .getByRole('navigation', { name: 'Main navigation' })
+      .getByRole('link', { name: /quest/i }),
+  ).toHaveCount(0);
+  await page.getByRole('button', { name: 'Menu', exact: true }).press('Enter');
+  await page.getByRole('link', { name: 'Quest Log', exact: true }).focus();
   await page.keyboard.press('Enter');
   await expect(
     page.getByRole('heading', { name: 'Your quests', exact: true }),
@@ -427,7 +489,7 @@ test('explicit backup import recovers malformed data and supports export', async
       sessionStorage.setItem('seeded', 'yes');
     }
   });
-  await page.goto(origin + '/#/about');
+  await page.goto(origin + '/#/backups');
   await expect(page.getByRole('alert')).toContainText(
     'Automatic saving is paused',
   );
@@ -499,6 +561,7 @@ test('quota failures preserve in-memory progress and allow backup export', async
   await expect(page.getByRole('alert')).toContainText(
     'Browser storage is unavailable',
   );
+  await page.getByRole('link', { name: 'Manage backups' }).click();
   const pending = page.waitForEvent('download');
   await page
     .getByRole('button', { name: 'Export backup', exact: true })

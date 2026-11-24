@@ -23,10 +23,12 @@ const statGroups = Object.entries(physicalStatGroups).map(
 );
 
 function StatsEditor({
+  group,
   stats,
   units,
   onClose,
 }: {
+  group: (typeof statGroups)[number];
   stats: PhysicalStats;
   units: UnitSystem;
   onClose: () => void;
@@ -36,47 +38,46 @@ function StatsEditor({
 
   function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const updates = Object.fromEntries(
+      group.fields.map(([key]) => [key, draft[key] ?? '']),
+    );
     if (
-      send({ type: 'physical/stats-save', stats: withStatUnits(draft, units) })
+      send({
+        type: 'physical/stats-save',
+        stats: withStatUnits(updates, units),
+      })
     ) {
-      notify('Physical stats saved.');
+      notify(group.title + ' saved.');
       onClose();
     }
   }
 
   return (
-    <Modal title="Edit physical stats" onClose={onClose}>
+    <Modal title={'Edit ' + group.title} onClose={onClose}>
       <form onSubmit={save}>
-        <div className={styles.statGroups}>
-          {statGroups.map(({ title, fields }) => (
-            <fieldset className={styles.fieldset} key={title}>
-              <legend>{title}</legend>
-              <div className={styles.statColumns}>
-                {fields.map(([key, label]) => (
-                  <label key={key}>
-                    {label}
-                    <input
-                      value={draft[key] ?? ''}
-                      maxLength={key === 'height' || key === 'weight' ? 76 : 80}
-                      onChange={(event) =>
-                        setDraft({ ...draft, [key]: event.target.value })
-                      }
-                      placeholder={
-                        key === 'height'
-                          ? units === 'metric'
-                            ? 'e.g. 175 cm'
-                            : 'e.g. 5 ft 9 in'
-                          : key === 'weight'
-                            ? units === 'metric'
-                              ? 'e.g. 72 kg'
-                              : 'e.g. 160 lb'
-                            : undefined
-                      }
-                    />
-                  </label>
-                ))}
-              </div>
-            </fieldset>
+        <div className={styles.editorFields}>
+          {group.fields.map(([key, label]) => (
+            <label key={key}>
+              {label}
+              <input
+                value={draft[key] ?? ''}
+                maxLength={key === 'height' || key === 'weight' ? 76 : 80}
+                onChange={(event) =>
+                  setDraft({ ...draft, [key]: event.target.value })
+                }
+                placeholder={
+                  key === 'height'
+                    ? units === 'metric'
+                      ? 'e.g. 175 cm'
+                      : 'e.g. 5 ft 9 in'
+                    : key === 'weight'
+                      ? units === 'metric'
+                        ? 'e.g. 72 kg'
+                        : 'e.g. 160 lb'
+                      : undefined
+                }
+              />
+            </label>
           ))}
         </div>
         <div className="actions">
@@ -153,7 +154,9 @@ export function PhysicalStatsPage() {
     send,
   } = useApp();
   const [section, setSection] = useState<BodySection | null>(null);
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState<(typeof statGroups)[number] | null>(
+    null,
+  );
   const stats = physical?.stats ?? {};
   const units = physical?.units ?? 'imperial';
   const statuses = [...(physical?.statuses ?? [])].sort((a, b) => b.at - a.at);
@@ -195,17 +198,7 @@ export function PhysicalStatsPage() {
 
         <section className="surface" aria-labelledby="physical-stat-heading">
           <div className={styles.sectionHeading}>
-            <div className={styles.statsTitle}>
-              <h2 id="physical-stat-heading">Stats</h2>
-              <button
-                className={styles.editStats}
-                type="button"
-                aria-label="Edit stats"
-                onClick={() => setEditing(true)}
-              >
-                (edit)
-              </button>
-            </div>
+            <h2 id="physical-stat-heading">Stats</h2>
             <button
               className={styles.unitSwitch}
               type="button"
@@ -224,11 +217,21 @@ export function PhysicalStatsPage() {
             </button>
           </div>
           <div className={styles.statGroups}>
-            {statGroups.map(({ title, fields }) => (
-              <div key={title}>
-                <h3>{title}</h3>
-                <dl className={styles.statColumns + ' ' + styles.readings}>
-                  {fields.map(([key, label]) => (
+            {statGroups.map((group) => (
+              <div key={group.title}>
+                <div className={styles.statsTitle}>
+                  <h3>{group.title}</h3>
+                  <button
+                    className={styles.editStats}
+                    type="button"
+                    aria-label={'Edit ' + group.title}
+                    onClick={() => setEditing(group)}
+                  >
+                    (edit)
+                  </button>
+                </div>
+                <dl className={styles.statFields + ' ' + styles.readings}>
+                  {group.fields.map(([key, label]) => (
                     <div key={key}>
                       <dt>{label}</dt>
                       <dd>
@@ -271,9 +274,10 @@ export function PhysicalStatsPage() {
       </div>
       {editing && (
         <StatsEditor
+          group={editing}
           stats={stats}
           units={units}
-          onClose={() => setEditing(false)}
+          onClose={() => setEditing(null)}
         />
       )}
       {section && (

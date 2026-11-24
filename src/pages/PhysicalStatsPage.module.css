@@ -184,14 +184,11 @@
   background: var(--green);
 }
 
-.statColumns {
+.statFields {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0 14px;
 }
 
-.statGroups h3,
-.fieldset legend {
+.statGroups h3 {
   color: var(--green);
   font-size: 13px;
   font-weight: 650;
@@ -222,19 +219,13 @@
   color: var(--muted);
 }
 
-.fieldset {
-  min-width: 0;
-  border: 0;
-  padding: 0;
-  margin: 0;
-}
-
-.fieldset .statColumns {
+.editorFields {
+  display: grid;
   margin-top: 8px;
   row-gap: 12px;
 }
 
-.fieldset label {
+.editorFields label {
   margin: 0;
 }
 

@@ -99,10 +99,6 @@
   border: 0;
 }
 
-.editor .fieldset + .fieldset {
-  margin-top: 12px;
-}
-
 .editor .columns label {
   margin: 5px 0;
 }

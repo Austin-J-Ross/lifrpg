@@ -57,7 +57,7 @@
   z-index: 10;
   inset: auto 0 0;
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 155px));
+  grid-template-columns: repeat(4, minmax(0, 155px));
   justify-content: center;
   gap: 5px;
   padding: 7px 10px calc(7px + env(safe-area-inset-bottom));

@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { useApp } from '../../state/AppProvider';
 import type { Profile } from '../../domain/models';
 export function ProfileForm() {
-  const { state, send, notify, storageError } = useApp();
+  const { state, send, notify } = useApp();
   const [profile, setProfile] = useState<Profile>(state.profile);
   const [photoError, setPhotoError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -46,48 +46,23 @@ export function ProfileForm() {
   return (
     <form className="surface form-panel" onSubmit={submit}>
       <div className="form-grid">
-        {(['firstName', 'lastName', 'pronouns', 'location'] as const).map(
-          (key) => (
-            <label key={key}>
-              {
-                {
-                  firstName: 'First name',
-                  lastName: 'Last name',
-                  pronouns: 'Pronouns',
-                  location: 'Location',
-                }[key]
+        {(['firstName', 'lastName'] as const).map((key) => (
+          <label key={key}>
+            {key === 'firstName'
+              ? 'First name (optional)'
+              : 'Last name (optional)'}
+            <input
+              name={key}
+              value={profile[key]}
+              onChange={(e) =>
+                setProfile({ ...profile, [key]: e.target.value })
               }
-              <input
-                name={key}
-                value={profile[key]}
-                onChange={(e) =>
-                  setProfile({ ...profile, [key]: e.target.value })
-                }
-                maxLength={key === 'location' ? 80 : 40}
-                required={key === 'firstName'}
-                autoComplete={
-                  key === 'firstName'
-                    ? 'given-name'
-                    : key === 'lastName'
-                      ? 'family-name'
-                      : key === 'location'
-                        ? 'address-level2'
-                        : undefined
-                }
-              />
-            </label>
-          ),
-        )}
+              maxLength={40}
+              autoComplete={key === 'firstName' ? 'given-name' : 'family-name'}
+            />
+          </label>
+        ))}
       </div>
-      <label>
-        A little about you
-        <textarea
-          value={profile.bio}
-          onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
-          rows={4}
-          maxLength={300}
-        />
-      </label>
       <label>
         Full-body photo (optional)
         <input
@@ -117,10 +92,6 @@ export function ProfileForm() {
           {photoError}
         </p>
       )}
-      <p className="form-note">
-        {storageError ||
-          'Saved in this browser. Filled-in details appear on Home.'}
-      </p>
       <div className="actions">
         <button className="primary" disabled={saving}>
           Save profile

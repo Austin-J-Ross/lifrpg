@@ -4,17 +4,22 @@ import { useApp } from '../state/AppProvider';
 const pages = [
   ['home', 'Home', '▦'],
   ['classes', 'Classes', '♣'],
-  ['quests', 'Quests', '⚑'],
   ['physical', 'Phys. Stats', '♙'],
-  ['mental', 'Mental Stats', '◇'],
+  ['mental', 'Mntl. Stats', '◇'],
 ];
+const pageTitles: Record<string, string> = {
+  '/about': 'About',
+  '/backups': 'Backups',
+  '/quests': 'Quest Log',
+  '/mental': 'Mental Stats',
+};
 export function AppLayout() {
   const location = useLocation();
   const { notice, storageError } = useApp();
   const page =
-    location.pathname === '/about'
-      ? 'About'
-      : (pages.find(([key]) => location.pathname === '/' + key)?.[1] ?? 'Home');
+    pageTitles[location.pathname] ??
+    pages.find(([key]) => location.pathname === '/' + key)?.[1] ??
+    'Home';
   useEffect(() => {
     document.title = 'Quest | ' + page;
     window.scrollTo(0, 0);
@@ -28,7 +33,7 @@ export function AppLayout() {
       <main id="top">
         {storageError && (
           <p className="storage-warning" role="alert">
-            {storageError} <Link to="/about">Manage backups</Link>
+            {storageError} <Link to="/backups">Manage backups</Link>
           </p>
         )}
         <Outlet />
