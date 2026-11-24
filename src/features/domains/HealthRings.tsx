@@ -1,8 +1,9 @@
 import styles from './HealthRings.module.css';
-import type { CSSProperties } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { domains } from '../../domain/definitions';
 import type { Domain } from '../../domain/models';
-import { DetailPopover } from '../../components/ui/DetailPopover';
+import { Modal } from '../../components/ui/Modal';
+import { DomainMeasurements } from './DomainMeasurements';
 function Icon({ name }: { name: Domain }) {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -27,53 +28,42 @@ function Icon({ name }: { name: Domain }) {
     </svg>
   );
 }
+
 export function HealthRings() {
+  const [selected, setSelected] = useState<Domain | null>(null);
   return (
     <div
       className={styles['health-grid']}
       role="group"
-      aria-label="Example domain health"
+      aria-label="Domain health"
     >
-      {domains.map((d) => (
-        <DetailPopover
-          key={d.name}
-          label={d.name + ' example health: ' + d.value + '%'}
+      {domains.map((domain) => (
+        <button
+          key={domain.name}
+          type="button"
+          aria-label={domain.name + ' health'}
+          aria-haspopup="dialog"
           className={styles['health-domain']}
-          style={
-            {
-              '--domain-color': d.color,
-            } as CSSProperties
-          }
-          details={
-            <div className="detail-heading">
-              {d.name}
-              <span>{d.value}% example health</span>
-            </div>
-          }
+          style={{ '--domain-color': domain.color } as CSSProperties}
+          onClick={() => setSelected(domain.name)}
         >
           <span className={styles['health-ring']}>
-            <svg
-              className={styles['health-ring-track']}
-              viewBox="0 0 100 100"
-              aria-hidden="true"
-            >
-              <circle className={styles['ring-track']} cx="50" cy="50" r="44" />
-              <circle
-                className={styles['ring-value']}
-                cx="50"
-                cy="50"
-                r="44"
-                pathLength="100"
-                strokeDasharray="100 100"
-                strokeDashoffset={100 - d.value}
-              />
-            </svg>
             <span className={styles['health-domain-icon']}>
-              <Icon name={d.name} />
+              <Icon name={domain.name} />
             </span>
           </span>
-        </DetailPopover>
+        </button>
       ))}
+      {selected && (
+        <Modal title={selected + ' health'} onClose={() => setSelected(null)}>
+          <DomainMeasurements domain={selected} />
+          <div className="actions">
+            <button type="button" onClick={() => setSelected(null)}>
+              Close
+            </button>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

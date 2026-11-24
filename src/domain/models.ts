@@ -1,3 +1,5 @@
+import type { Measurement } from './measurements';
+
 export const domainNames = [
   'Shelter',
   'Monetary',
@@ -53,6 +55,7 @@ export interface AppState {
   profile: Profile;
   classes: CharacterClass[];
   quests: Quest[];
+  measurements?: Measurement[];
 }
 export function emptyState(): AppState {
   return {

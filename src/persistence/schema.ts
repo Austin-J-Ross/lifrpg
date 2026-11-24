@@ -6,6 +6,12 @@ import {
   type Profile,
   emptyState,
 } from '../domain/models';
+import {
+  measurementKinds,
+  validMeasurementDate,
+  validMeasurementValue,
+  type Measurement,
+} from '../domain/measurements';
 type RecordValue = Record<string, unknown>;
 export function record(value: unknown): RecordValue {
   if (!value || typeof value !== 'object' || Array.isArray(value))
@@ -125,7 +131,32 @@ export function validateState(value: unknown): AppState {
     };
   });
   unique(quests.map((q) => q.id));
-  return { version: 2, profile: profile(saved.profile), classes, quests };
+  const measurements =
+    saved.measurements === undefined
+      ? undefined
+      : array(saved.measurements).map((value): Measurement => {
+          const entry = record(value);
+          const date = text(entry.date, 10);
+          if (!validMeasurementDate(date) || typeof entry.value !== 'number')
+            throw Error('Invalid saved measurement.');
+          const measurement = {
+            kind: oneOf(entry.kind, measurementKinds),
+            date,
+            value: entry.value,
+            unit: oneOf(entry.unit, ['h', 'lb', 'kg', 'kcal'] as const),
+          };
+          if (!validMeasurementValue(measurement))
+            throw Error('Invalid saved measurement.');
+          return measurement;
+        });
+  if (measurements) unique(measurements.map(({ kind, date }) => kind + date));
+  return {
+    version: 2,
+    profile: profile(saved.profile),
+    classes,
+    quests,
+    ...(measurements ? { measurements } : {}),
+  };
 }
 export function decodeState(value: unknown): AppState {
   const raw = record(value);

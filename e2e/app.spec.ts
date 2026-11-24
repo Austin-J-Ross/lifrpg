@@ -8,6 +8,52 @@ const legacy = JSON.parse(
 );
 import fs from 'node:fs/promises';
 const origin = 'http://quest.local';
+test('logs and recalls readings through their domain rings', async ({
+  page,
+}) => {
+  await page.clock.setFixedTime(new Date('2026-11-23T15:00:00Z'));
+  await page.goto(origin + '/#/home');
+  await page.getByRole('button', { name: 'Mental health' }).click();
+  const mental = page.getByRole('dialog', { name: 'Mental health' });
+  await expect(
+    mental.getByText('No entry', { exact: true }).filter({ visible: true }),
+  ).toBeVisible();
+  await mental.getByRole('button', { name: 'Log sleep' }).click();
+  await mental.getByLabel('Wake-up date').fill('2026-11-22');
+  await mental.getByLabel('Hours slept').fill('7.5');
+  await mental.getByRole('button', { name: 'Save sleep' }).click();
+  await expect(
+    mental.getByText('No entry', { exact: true }).filter({ visible: true }),
+  ).toBeVisible();
+  await mental.getByText('Sleep history').click();
+  await expect(mental.getByText('7.5 h')).toBeVisible();
+  await mental.getByRole('button', { name: 'Close', exact: true }).click();
+
+  await page.getByRole('button', { name: 'Physical health' }).click();
+  const physical = page.getByRole('dialog', { name: 'Physical health' });
+  await physical.getByRole('button', { name: 'Log weight' }).click();
+  await physical.getByLabel('Date', { exact: true }).fill('2026-11-21');
+  await physical
+    .getByRole('spinbutton', { name: 'Weight', exact: true })
+    .fill('72.4');
+  await physical.getByLabel('Unit').selectOption('kg');
+  await physical.getByRole('button', { name: 'Save weight' }).click();
+  await physical.getByRole('button', { name: 'Log calories' }).click();
+  await physical.getByLabel('Daily calories (kcal)').fill('1850');
+  await physical.getByRole('button', { name: 'Save calories' }).click();
+  await page.reload();
+  await page.getByRole('button', { name: 'Physical health' }).click();
+  await expect(
+    physical.getByText('72.4 kg').filter({ visible: true }),
+  ).toBeVisible();
+  await expect(
+    physical.locator('time[datetime="2026-11-21"]').first(),
+  ).toBeVisible();
+  await expect(
+    physical.getByText('1,850 kcal').filter({ visible: true }),
+  ).toBeVisible();
+});
+
 test.describe('touch navigation', () => {
   test.use({
     hasTouch: true,
