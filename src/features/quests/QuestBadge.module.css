@@ -1,28 +1,23 @@
 .badge {
-  position: absolute;
-  top: -10px;
-  left: -10px;
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  padding: 3px;
-  border-radius: 50%;
-  background: #b6b8b5;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 36px;
+  padding: 3px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 11px;
+  white-space: nowrap;
 }
+
+.badge:hover {
+  color: var(--green);
+  border-color: var(--green);
+}
+
 .count {
-  display: grid;
-  place-items: center;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: #b33f42;
-  color: #fff;
-  font-size: 10px;
+  color: var(--green);
   font-weight: 700;
-  line-height: 1;
   font-variant-numeric: tabular-nums;
-}
-.badge:hover .count {
-  background: #963337;
 }

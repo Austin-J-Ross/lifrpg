@@ -8,21 +8,6 @@
 @import './domain-forms.css';
 @import './pages.css';
 @import './character-sheet.css';
-@media (max-width: 680px) {
-  .sidebar-bottom {
-    display: block;
-    padding: 10px 0 0;
-  }
-  .sidebar-bottom > small,
-  .sidebar-bottom > p,
-  .user > div {
-    display: none;
-  }
-  .user {
-    margin: 8px 10px;
-  }
-}
-
 .storage-warning {
   margin-top: 16px;
   padding: 12px;

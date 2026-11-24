@@ -1,11 +1,5 @@
 /* Tablet and mobile */
 @media (max-width: 900px) {
-  .app {
-    grid-template-columns: 180px minmax(0, 1fr);
-  }
-  .sidebar {
-    padding: 26px 16px;
-  }
   .brand {
     gap: 6px;
     font-size: 20px;
@@ -17,39 +11,8 @@
   main {
     padding: 26px 24px;
   }
-  .tagline {
-    font-size: 7px;
-    letter-spacing: 1px;
-  }
 }
 @media (max-width: 680px) {
-  .app {
-    display: block;
-  }
-  .sidebar {
-    position: static;
-    height: auto;
-    padding: 15px 18px 10px;
-    gap: 12px;
-  }
-  .tagline,
-  .sidebar-bottom {
-    display: none;
-  }
-  .nav {
-    display: flex;
-    gap: 5px;
-  }
-  .nav a {
-    justify-content: center;
-    padding: 8px 10px;
-    min-height: 40px;
-    font-size: 11px;
-    gap: 6px;
-  }
-  .nav a > span {
-    font-size: 16px;
-  }
   main {
     padding: 21px 18px;
   }
@@ -65,13 +28,6 @@
   }
 }
 @media (max-width: 380px) {
-  .topline {
-    font-size: 10px;
-  }
-  .preview {
-    font-size: 8px;
-    padding: 5px 6px;
-  }
   .profile-header {
     column-gap: 5px;
   }

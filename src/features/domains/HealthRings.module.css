@@ -118,3 +118,14 @@
   width: 42%;
   height: 42%;
 }
+
+@media (max-width: 680px) {
+  :global(.character-sheet) .health-grid {
+    grid-column: 1 / -1;
+    flex-direction: row;
+  }
+
+  :global(.character-sheet) .health-domain {
+    width: 44px;
+  }
+}

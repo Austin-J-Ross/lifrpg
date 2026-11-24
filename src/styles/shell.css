@@ -1,19 +1,21 @@
 /* Shell */
 .app {
-  display: grid;
-  grid-template-columns: 210px minmax(0, 1fr);
   min-height: 100vh;
+  padding-bottom: calc(70px + env(safe-area-inset-bottom));
 }
-.sidebar {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  padding: 32px 22px;
-  background: #211d1a;
-  color: #f4f3e9;
+
+.app-header {
+  position: relative;
+  z-index: 1;
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px clamp(12px, 4vw, 36px);
+  border-bottom: 1px solid var(--line);
+  background: var(--metal-inset);
 }
+
 .brand {
   display: flex;
   align-items: center;
@@ -75,30 +77,27 @@
     0 -5px currentColor,
     0 5px currentColor;
 }
-.swipe-area {
-  touch-action: pan-y pinch-zoom;
-}
-.app > .sidebar {
-  z-index: 1;
-}
 .brand span {
   color: #e4c080;
   font-size: 32px;
 }
-.tagline {
-  margin: 8px 0 38px;
-  font-size: 8px;
-  letter-spacing: 1.7px;
-  color: #a5b09f;
-}
-.nav {
+.bottom-nav {
+  position: fixed;
+  z-index: 10;
+  inset: auto 0 0;
   display: grid;
-  gap: 7px;
+  grid-template-columns: repeat(3, minmax(0, 155px));
+  justify-content: center;
+  gap: 5px;
+  padding: 7px 10px calc(7px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line);
+  background: var(--metal-inset);
 }
 .nav a {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
+  gap: 7px;
   min-height: 44px;
   padding: 10px 13px;
   border-radius: 7px;
@@ -116,64 +115,4 @@
   width: 18px;
   text-align: center;
   font-size: 18px;
-}
-.sidebar-bottom {
-  margin-top: auto;
-  padding-top: 24px;
-  border-top: 1px solid #454b40;
-}
-.sidebar-bottom > small {
-  font-size: 8px;
-  letter-spacing: 1.5px;
-  color: #c9bda8;
-}
-.sidebar-bottom > p {
-  margin: 15px 0 24px;
-  font:
-    20px/1.5 Georgia,
-    serif;
-  color: #ddcdb2;
-}
-.user {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-.user > div {
-  min-width: 0;
-}
-.user strong {
-  display: block;
-  overflow-wrap: anywhere;
-  font-size: 12px;
-}
-.user small {
-  display: block;
-  margin-top: 4px;
-  color: #c9bda8;
-  font-size: 10px;
-}
-.topline {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding-bottom: 22px;
-  border-bottom: 1px solid var(--line);
-  color: var(--muted);
-  font-size: 11px;
-}
-.topline b {
-  color: var(--green);
-  font-weight: 500;
-  margin-left: 5px;
-}
-.preview {
-  flex-shrink: 0;
-  border: 1px solid var(--line);
-  border-radius: 20px;
-  padding: 5px 9px;
-  font-size: 9px;
-  letter-spacing: 0.6px;
 }

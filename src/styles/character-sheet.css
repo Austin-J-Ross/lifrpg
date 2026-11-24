@@ -3,11 +3,6 @@
   color: #f2e8d7;
 }
 
-.app .sidebar {
-  background: linear-gradient(150deg, #292724, #161618 65%);
-  border-inline-end: 1px solid #625640;
-}
-
 .app .nav a:is(.active, :hover) {
   color: #ffe2a0;
   background: linear-gradient(#484031, #2a241e);
@@ -22,14 +17,27 @@ main {
   padding: 24px clamp(16px, 4vw, 54px);
 }
 
-.character-screen .storage-warning {
-  max-width: 480px;
-  margin: 0 auto 12px;
+.home-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+  align-items: start;
+  gap: 16px;
+}
+
+.today-panel {
+  min-width: 0;
+}
+
+.today-panel .quest-title {
+  margin-bottom: 10px;
+}
+
+.today-panel h1 {
+  font-size: 24px;
 }
 
 .character-sheet {
-  max-width: 480px;
-  margin-inline: auto;
+  min-width: 0;
   padding: 9px;
   border: 1px solid #9d8761;
   border-radius: 9px;
@@ -86,18 +94,6 @@ main {
   object-fit: contain;
 }
 
-.full-body-portrait #portrait-quest-badge {
-  top: 8px;
-  left: 8px;
-  width: 44px;
-  height: 44px;
-  box-shadow: 0 2px 8px #000b;
-}
-
-.full-body-portrait #portrait-quest-count {
-  font-size: 15px;
-}
-
 .portrait-placeholder {
   display: grid;
   place-content: center;
@@ -119,22 +115,69 @@ main {
   line-height: 1;
 }
 
-@media (max-width: 420px) {
+@media (max-width: 680px) {
+  main {
+    padding: 14px 12px;
+  }
+
+  .home-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .character-sheet {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr);
+    align-items: center;
+    gap: 8px 10px;
+    padding: 10px;
+  }
+
   .character-sheet .profile-header {
-    padding-inline: 8px;
+    grid-column: 2;
+    grid-row: 1;
+    gap: 3px;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    background: none;
+  }
+
+  .character-sheet h2 {
+    font-size: 20px;
+  }
+
+  .character-overview {
+    display: contents;
+  }
+
+  .full-body-portrait {
+    grid-column: 1;
+    grid-row: 1;
+    aspect-ratio: 1;
+    border-width: 1px;
+    overflow: hidden;
+  }
+
+  .full-body-portrait img {
+    object-fit: cover;
+    object-position: center top;
+  }
+
+  .portrait-placeholder {
+    margin: 3px;
+  }
+
+  .portrait-placeholder span {
+    font-size: 23px;
   }
 }
 
-@media (max-width: 680px) {
-  main {
-    padding: 20px 14px;
-  }
+.character-sheet .profile-header h2 {
+  font-size: 22px;
+}
 
-  .character-screen main {
-    padding-inline: 8px;
-  }
-
-  .character-screen .sidebar-bottom {
-    display: none;
-  }
+.character-sheet .profile-header p {
+  color: var(--muted);
+  font-size: 12px;
 }

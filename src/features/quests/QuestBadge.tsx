@@ -20,6 +20,7 @@ export function QuestBadge() {
       <span id="portrait-quest-count" className={styles.count}>
         {count}
       </span>
+      <span>active {count === 1 ? 'quest' : 'quests'}</span>
     </Link>
   );
 }

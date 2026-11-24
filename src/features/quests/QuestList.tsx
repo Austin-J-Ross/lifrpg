@@ -1,5 +1,6 @@
 import { useClock } from '../../components/ui/useClock';
 import { useEffect, useRef } from 'react';
+import { Link } from 'react-router';
 import { useApp } from '../../state/AppProvider';
 import { DAY } from '../../domain/deadlines';
 import type { Quest } from '../../domain/models';
@@ -9,10 +10,12 @@ function QuestItem({
   quest,
   onComplete,
   now,
+  today,
 }: {
   quest: Quest;
   onComplete: () => void;
   now: number;
+  today: boolean;
 }) {
   const { state } = useApp();
   const c = state.classes.find((c) => c.id === quest.classId)!;
@@ -22,12 +25,14 @@ function QuestItem({
   return (
     <article className={styles.item + ' ' + (overdue ? styles.overdue : '')}>
       <button
-        className="complete-button"
+        className={today ? 'add-button ' + styles.complete : 'complete-button'}
         type="button"
         data-complete={quest.id}
         aria-label={'Complete ' + quest.title}
         onClick={onComplete}
-      />
+      >
+        {today && 'Complete'}
+      </button>
       <div className={styles.copy}>
         <h3>{quest.title}</h3>
         <p className={styles.className}>
@@ -65,7 +70,13 @@ function QuestItem({
     </article>
   );
 }
-export function QuestList({ limit }: { limit?: number }) {
+export function QuestList({
+  layout,
+  emptyAction,
+}: {
+  layout?: 'today';
+  emptyAction?: '/classes' | '/quests';
+}) {
   const { state, send, notify } = useApp();
   const now = useClock();
   const ref = useRef<HTMLDivElement>(null),
@@ -75,30 +86,49 @@ export function QuestList({ limit }: { limit?: number }) {
       focus.current = false;
       (
         ref.current?.querySelector<HTMLButtonElement>('[data-complete]') ||
-        document.querySelector<HTMLElement>('#add-quest, #view-all-quests')
+        document.querySelector<HTMLElement>(
+          '#today-empty-action, #add-quest, #portrait-quest-badge',
+        )
       )?.focus();
     }
   }, [state.quests]);
+  const today = layout === 'today';
+  if (!state.quests.length) {
+    return today ? (
+      <div className={styles.todayEmpty}>
+        <p>No active quests.</p>
+        <Link
+          id="today-empty-action"
+          className="add-button"
+          to={emptyAction ?? '/quests'}
+        >
+          {emptyAction === '/classes'
+            ? 'Create a class to start'
+            : 'Go to Quests'}
+        </Link>
+      </div>
+    ) : (
+      <EmptyState>All clear. A little breathing room, well earned.</EmptyState>
+    );
+  }
+  const quests = today
+    ? [...state.quests].sort((a, b) => a.deadline - b.deadline)
+    : state.quests;
   return (
-    <div ref={ref}>
-      {!state.quests.length ? (
-        <EmptyState>
-          All clear. A little breathing room, well earned.
-        </EmptyState>
-      ) : (
-        state.quests.slice(0, limit).map((q) => (
-          <QuestItem
-            key={q.id}
-            quest={q}
-            now={now}
-            onComplete={() => {
-              focus.current = true;
-              if (send({ type: 'quest/complete', id: q.id }))
-                notify(q.title + ' complete! +' + q.xp + ' XP');
-            }}
-          />
-        ))
-      )}
+    <div ref={ref} className={today ? styles.today : undefined}>
+      {quests.map((q) => (
+        <QuestItem
+          key={q.id}
+          quest={q}
+          now={now}
+          today={today}
+          onComplete={() => {
+            focus.current = true;
+            if (send({ type: 'quest/complete', id: q.id }))
+              notify(q.title + ' complete! +' + q.xp + ' XP');
+          }}
+        />
+      ))}
     </div>
   );
 }

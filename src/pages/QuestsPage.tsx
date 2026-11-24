@@ -10,10 +10,7 @@ export function QuestsPage() {
   const [open, setOpen] = useState(false);
   return (
     <section className="page">
-      <PageHeading
-        title="Your quests"
-        description="Turn intentions into experience."
-      />
+      <PageHeading title="Your quests" />
       <section className="quest-panel" aria-labelledby="quest-heading">
         <header className="quest-title">
           <h2 id="quest-heading">
@@ -34,9 +31,6 @@ export function QuestsPage() {
             </Link>
           )}
         </header>
-        <p className="quest-intro">
-          Complete quests to earn experience in the things that matter.
-        </p>
         <QuestList />
         <p className="quest-footer">
           Damage rates are planned penalties. Automatic health damage is not

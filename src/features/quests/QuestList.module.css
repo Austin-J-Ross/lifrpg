@@ -52,3 +52,70 @@
 .damage {
   color: #eea290;
 }
+
+.today {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: min(100%, 22rem);
+  align-items: stretch;
+  gap: 10px;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: inline mandatory;
+  scrollbar-color: #9a8060 transparent;
+  padding: 4px 4px 10px;
+  margin: 0 -4px;
+}
+
+.today:has(> :nth-child(2)) {
+  grid-auto-columns: min(87%, 22rem);
+}
+
+.today .item {
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 14px;
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--metal-inset);
+  scroll-snap-align: start;
+  scroll-margin-inline: 4px;
+}
+
+.today .overdue {
+  border-color: #967157;
+}
+
+.today .copy h3 {
+  font-size: 16px;
+}
+
+.today .meta {
+  grid-column: 1 / -1;
+  flex-direction: column;
+  gap: 4px;
+  margin: 4px 0;
+}
+
+.today .complete {
+  grid-row: 3;
+  grid-column: 1 / -1;
+  justify-content: center;
+  width: 100%;
+  min-height: 44px;
+  align-self: end;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.todayEmpty {
+  display: grid;
+  justify-items: start;
+  gap: 14px;
+  margin-top: 12px;
+  color: var(--muted);
+}
+
+.todayEmpty a {
+  min-height: 44px;
+}

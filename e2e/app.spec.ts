@@ -28,48 +28,60 @@ test.describe('touch navigation', () => {
     await expect(menu).toHaveAttribute('aria-expanded', 'false');
   });
 
-  test('swipes through the main pages and opens About from the hamburger', async ({
+  test('scrolls Today quests horizontally and completes them without changing pages', async ({
     page,
   }) => {
+    await page.addInitScript(
+      (data) =>
+        localStorage.setItem('quest-character-v1', JSON.stringify(data)),
+      legacy,
+    );
     await page.goto(origin + '/#/home');
+    const today = page.getByRole('region', { name: 'Today' });
+    const cards = today.getByRole('article');
+    await expect(cards).toHaveCount(3);
+    const complete = cards.first().getByRole('button', { name: /^Complete / });
+    await expect(complete).toHaveText('Complete');
+    await expect(complete).toBeInViewport();
+    const box = await cards.first().boundingBox();
+    if (!box) throw new Error('Today quest cards are missing');
     const client = await page.context().newCDPSession(page);
-    async function swipe(from: number, to: number) {
-      await page.locator('main h1').waitFor();
+    const y = Math.round(box.y + 20);
+    await client.send('Input.dispatchTouchEvent', {
+      type: 'touchStart',
+      touchPoints: [{ x: 280, y }],
+    });
+    for (const x of [240, 200, 160, 120, 80]) {
       await client.send('Input.dispatchTouchEvent', {
-        type: 'touchStart',
-        touchPoints: [{ x: from, y: 300 }],
-      });
-      for (const progress of [0.25, 0.5, 0.75, 1]) {
-        await client.send('Input.dispatchTouchEvent', {
-          type: 'touchMove',
-          touchPoints: [{ x: from + (to - from) * progress, y: 300 }],
-        });
-      }
-      await client.send('Input.dispatchTouchEvent', {
-        type: 'touchEnd',
-        touchPoints: [],
+        type: 'touchMove',
+        touchPoints: [{ x, y }],
       });
     }
-    await swipe(310, 80);
-    await expect(page).toHaveURL(/#\/classes$/);
-    await swipe(310, 80);
-    await expect(page).toHaveURL(/#\/quests$/);
-    await swipe(80, 310);
-    await expect(page).toHaveURL(/#\/classes$/);
-    await swipe(80, 310);
+    await client.send('Input.dispatchTouchEvent', {
+      type: 'touchEnd',
+      touchPoints: [],
+    });
+    await expect
+      .poll(() =>
+        cards.first().evaluate((card) => card.parentElement!.scrollLeft),
+      )
+      .toBeGreaterThan(0);
     await expect(page).toHaveURL(/#\/home$/);
-    await swipe(80, 310);
-    await expect(page).toHaveURL(/#\/home$/);
-    const about = page.getByRole('link', { name: 'About', exact: true });
-    await expect(about).toBeHidden();
-    await page.getByRole('button', { name: 'Menu', exact: true }).click();
-    await expect(page).toHaveURL(/#\/home$/);
-    await about.click();
-    await expect(about).toBeHidden();
-    await expect(page).toHaveURL(/#\/about$/);
-    await swipe(310, 80);
-    await swipe(80, 310);
-    await expect(page).toHaveURL(/#\/about$/);
+    await cards
+      .nth(1)
+      .getByRole('button', { name: /^Complete / })
+      .click();
+    await expect(cards).toHaveCount(2);
+    await expect(
+      today.getByRole('link', { name: '2 active quests. View quests' }),
+    ).toBeVisible();
+    await page
+      .getByRole('navigation', { name: 'Main navigation' })
+      .getByRole('link', { name: 'Quests' })
+      .click();
+    await expect(
+      page.getByRole('heading', { name: 'Your quests' }),
+    ).toBeVisible();
   });
 });
 
@@ -166,14 +178,9 @@ test('migrates legacy saves and displays the requested badge on desktop and mobi
     path: 'artifacts/quest-desktop.png',
     fullPage: true,
   });
-  const colors = await page.locator('#portrait-quest-badge').evaluate((el) => ({
-    outer: getComputedStyle(el).backgroundColor,
-    inner: getComputedStyle(el.firstElementChild!).backgroundColor,
-  }));
-  expect(colors).toEqual({
-    outer: 'rgb(182, 184, 181)',
-    inner: 'rgb(179, 63, 66)',
-  });
+  await expect(
+    page.getByRole('link', { name: '3 active quests. View quests' }),
+  ).toHaveText('3active quests');
   for (const width of [375, 320]) {
     await page.setViewportSize({ width, height: 812 });
     await expect(page.locator('#portrait-quest-badge')).toBeVisible();
