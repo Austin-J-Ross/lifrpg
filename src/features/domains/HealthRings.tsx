@@ -42,7 +42,6 @@ export function HealthRings() {
           style={
             {
               '--domain-color': d.color,
-              '--health-icon-color': 'hsl(' + d.value * 1.2 + ',58%,40%)',
             } as CSSProperties
           }
           details={

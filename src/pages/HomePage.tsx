@@ -34,19 +34,17 @@ export function HomePage() {
           {highestLevel > 0 && <p>Top class level {highestLevel}</p>}
         </div>
         <AboutMenu />
+        <HealthRings />
       </header>
       <section className="character-sheet" aria-label="Character">
-        <div className="character-overview">
-          <div className="full-body-portrait">
-            {profile.portrait ? (
-              <img src={profile.portrait} alt="Full-body character portrait" />
-            ) : (
-              <div className="portrait-placeholder" aria-hidden="true">
-                ◇
-              </div>
-            )}
-          </div>
-          <HealthRings />
+        <div className="full-body-portrait">
+          {profile.portrait ? (
+            <img src={profile.portrait} alt="Full-body character portrait" />
+          ) : (
+            <div className="portrait-placeholder" aria-hidden="true">
+              ◇
+            </div>
+          )}
         </div>
       </section>
       <section

@@ -1,13 +1,16 @@
 .health-grid {
+  grid-column: 1 / -1;
   display: flex;
-  align-items: center;
-  gap: 6px;
+  justify-content: space-evenly;
+  width: min(100%, 360px);
+  margin-inline: auto;
+  gap: 4px;
 }
 .health-domain {
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: clamp(44px, 12vw, 56px);
+  aspect-ratio: 1;
   padding: 3px;
   border: 0;
   border-radius: 50%;
@@ -18,8 +21,8 @@
   user-select: none;
 }
 .health-ring {
-  width: 38px;
-  height: 38px;
+  width: 100%;
+  aspect-ratio: 1;
   position: relative;
 }
 .health-ring-track {
@@ -33,13 +36,7 @@
   stroke-width: 6;
 }
 .ring-track {
-  stroke: #dfe2d6;
-}
-:global(.character-sheet) .ring-track {
   stroke: #514a40;
-}
-:global(.character-sheet) .health-domain-icon {
-  color: #e5d2aa;
 }
 .ring-value {
   stroke: currentColor;
@@ -50,7 +47,7 @@
   inset: 0;
   display: grid;
   place-items: center;
-  color: var(--health-icon-color);
+  color: #e5d2aa;
 }
 .health-domain-icon svg {
   width: 18px;
@@ -60,72 +57,4 @@
   stroke-width: 1.6;
   stroke-linecap: round;
   stroke-linejoin: round;
-}
-
-@media (max-width: 680px) {
-  .health-grid {
-    gap: 0;
-  }
-  .health-domain {
-    width: 40px;
-    height: 44px;
-    padding: 2px;
-  }
-  .health-ring {
-    width: 34px;
-    height: 34px;
-  }
-}
-@media (max-width: 380px) {
-  .health-domain {
-    width: 36px;
-  }
-  .health-ring {
-    width: 31px;
-    height: 31px;
-  }
-  .health-domain-icon svg {
-    width: 16px;
-    height: 16px;
-  }
-}
-
-:global(.character-sheet) .health-grid {
-  flex-direction: column;
-  justify-content: space-evenly;
-  gap: 4px;
-  padding: 4px;
-  border: 1px solid var(--line);
-  border-radius: 5px;
-  background: var(--metal-inset);
-  box-shadow: inset 0 0 0 1px #121113;
-}
-
-:global(.character-sheet) .health-domain {
-  width: min(100%, 76px);
-  height: auto;
-  aspect-ratio: 1;
-  padding: 3px;
-}
-
-:global(.character-sheet) .health-ring {
-  width: 100%;
-  height: auto;
-  aspect-ratio: 1;
-}
-
-:global(.character-sheet) .health-domain-icon svg {
-  width: 42%;
-  height: 42%;
-}
-
-@media (max-width: 680px) {
-  :global(.character-sheet) .health-grid {
-    grid-column: 1 / -1;
-    flex-direction: row;
-  }
-
-  :global(.character-sheet) .health-domain {
-    width: 44px;
-  }
 }

@@ -89,13 +89,6 @@ main {
   color: #f3d89e;
 }
 
-.character-overview {
-  display: grid;
-  grid-template-columns: minmax(0, 3fr) minmax(0, 1fr);
-  gap: 6px;
-  align-items: stretch;
-}
-
 .full-body-portrait {
   position: relative;
   display: grid;
@@ -150,18 +143,6 @@ main {
   }
 
   .character-sheet {
-    padding: 0;
-    border: 0;
-    border-radius: 0;
-    background: none;
-    box-shadow: none;
-  }
-
-  .character-overview {
-    display: block;
-  }
-
-  .full-body-portrait {
     display: none;
   }
 }
