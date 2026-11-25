@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type PointerEvent } from 'react';
 import type { CharacterClass, Quest } from '../../domain/models';
 import styles from './QuestList.module.css';
+import { TaskTypeIcon } from './TaskTypeIcon';
 
 export function QuestSwipeRow({
   quest,
@@ -25,7 +26,6 @@ export function QuestSwipeRow({
   const [dragging, setDragging] = useState(false);
   const [ready, setReady] = useState(false);
   const [completing, setCompleting] = useState(false);
-  const habit = quest.kind === 'habit';
 
   useEffect(
     () => () => {
@@ -110,13 +110,7 @@ export function QuestSwipeRow({
           if (!completing && event.detail === 0) onConfirm();
         }}
       >
-        <span
-          className={habit ? styles.habitIcon : styles.questIcon}
-          role="img"
-          aria-label={habit ? 'Habit' : 'Quest'}
-        >
-          {habit ? '↻' : '!'}
-        </span>
+        <TaskTypeIcon kind={quest.kind ?? 'quest'} />
         <span className={styles.loadoutCopy} id={'loadout-quest-' + quest.id}>
           <span className={styles.loadoutTitle}>{quest.title}</span>
           <span className={styles.loadoutClass}>

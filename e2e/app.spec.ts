@@ -402,10 +402,22 @@ test.describe('touch navigation', () => {
         return list.scrollHeight > list.clientHeight;
       }),
     ).toBe(true);
-    await today.getByRole('button', { name: 'M (Medium)', exact: true }).tap();
-    await expect(rows).toHaveCount(1);
-    await expect(rows.first()).toContainText('Plan a date night');
+    const questsFilter = today.getByRole('button', {
+      name: 'Quests',
+      exact: true,
+    });
+    const habitsFilter = today.getByRole('button', {
+      name: 'Habits',
+      exact: true,
+    });
+    await expect(questsFilter).toHaveAttribute('aria-pressed', 'false');
+    await expect(habitsFilter).toHaveAttribute('aria-pressed', 'false');
+    await habitsFilter.tap();
+    await expect(rows).toHaveCount(0);
     await today.getByRole('button', { name: 'Add task' }).tap();
+    await expect(page.getByLabel('Deadline', { exact: true })).toHaveValue(
+      '2026-11-24',
+    );
     await expect(page.getByLabel('Quest objective')).toHaveCSS(
       'font-size',
       '16px',
@@ -418,15 +430,16 @@ test.describe('touch navigation', () => {
       .getByRole('combobox', { name: 'Type', exact: true })
       .selectOption('habit');
     await page.getByRole('button', { name: 'Create Habit' }).click();
-    await expect(rows).toHaveCount(2);
+    await expect(rows).toHaveCount(1);
     await expect(
       rows
         .filter({ hasText: 'Take a walk' })
         .getByRole('img', { name: 'Habit' }),
     ).toBeVisible();
-    await today
-      .getByRole('button', { name: 'M (Medium)', exact: true })
-      .click();
+    await questsFilter.click();
+    await expect(rows).toHaveCount(3);
+    await questsFilter.click();
+    await expect(rows).toHaveCount(4);
     const quest = today.getByRole('button', {
       name: 'Complete Finish the bathroom trim',
     });
@@ -464,6 +477,43 @@ test.describe('touch navigation', () => {
     await reward.getByRole('button', { name: 'Done', exact: true }).click();
     await expect(rows).toHaveCount(3);
     await expect(page).toHaveURL(/#\/home$/);
+    await today
+      .getByRole('button', { name: 'Complete Take a walk', exact: true })
+      .press('Enter');
+    await page.getByRole('button', { name: 'Confirm completion' }).click();
+    const habitReward = page.getByRole('dialog', {
+      name: 'Habit complete',
+      exact: true,
+    });
+    await habitReward
+      .getByRole('button', { name: 'Done', exact: true })
+      .click();
+    const upcoming = today.getByRole('region', {
+      name: 'Upcoming',
+      exact: true,
+    });
+    await expect(
+      upcoming.getByRole('button', {
+        name: 'Complete Take a walk',
+        exact: true,
+      }),
+    ).toHaveCount(1);
+    await page.reload();
+    await expect(
+      upcoming.getByRole('button', {
+        name: 'Complete Take a walk',
+        exact: true,
+      }),
+    ).toHaveCount(1);
+    const walk = await page.evaluate(() =>
+      JSON.parse(localStorage.getItem('quest-character-v2')!).quests.filter(
+        (quest: { title: string }) => quest.title === 'Take a walk',
+      ),
+    );
+    expect(walk).toHaveLength(2);
+    expect(walk[0].completedAt).toEqual(expect.any(Number));
+    expect(walk[1].deadline).toBe(new Date('2026-11-26T04:59:00Z').getTime());
+    expect(walk[1].completedAt).toBeUndefined();
   });
 });
 

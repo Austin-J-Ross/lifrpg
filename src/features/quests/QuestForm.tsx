@@ -9,19 +9,13 @@ import {
   type QuestSize,
 } from '../../domain/definitions';
 import type { Quest, QuestKind } from '../../domain/models';
-import {
-  dayDeadline,
-  localDateValue,
-  deadlineForDate,
-} from '../../domain/deadlines';
+import { localDateValue, deadlineForDate } from '../../domain/deadlines';
 import { Modal } from '../../components/ui/Modal';
 export function QuestForm({
   onClose,
-  initialSize = 'medium',
   quest,
 }: {
   onClose: () => void;
-  initialSize?: QuestSize;
   quest?: Quest;
 }) {
   const { state, send, notify, notice } = useApp();
@@ -35,9 +29,9 @@ export function QuestForm({
       quest?.skillId ?? state.classes[0]?.skills[0]?.id ?? '',
     ),
     [date, setDate] = useState(
-      previousDate ?? localDateValue(new Date(dayDeadline(1))),
+      () => previousDate ?? localDateValue(new Date()),
     ),
-    [size, setSize] = useState<QuestSize>(previousSize ?? initialSize),
+    [size, setSize] = useState<QuestSize>(previousSize ?? 'medium'),
     [kind, setKind] = useState<QuestKind>(quest?.kind ?? 'quest'),
     [noDamage, setNoDamage] = useState(quest?.noDamage ?? false),
     [showError, setShowError] = useState(false);

@@ -3,9 +3,9 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { useApp } from '../../state/AppProvider';
 import { DAY } from '../../domain/deadlines';
-import { questSizeFor, type QuestSize } from '../../domain/definitions';
+import { createId } from '../../domain/identity';
 import { skillProgress } from '../../domain/progression';
-import type { Quest } from '../../domain/models';
+import type { Quest, QuestKind } from '../../domain/models';
 import { EmptyState } from '../../components/ui/EmptyState';
 import styles from './QuestList.module.css';
 import { QuestCompletion, type QuestAward } from './QuestCompletion';
@@ -102,12 +102,12 @@ function QuestItem({
 export function QuestList({
   layout,
   emptyAction,
-  sizeFilter = 'all',
+  kindFilter = 'all',
   onEdit,
 }: {
   layout?: 'today';
   emptyAction?: '/classes' | '/quests';
-  sizeFilter?: QuestSize | 'all';
+  kindFilter?: QuestKind | 'all';
   onEdit?: (quest: Quest) => void;
 }) {
   const { state, send } = useApp();
@@ -141,7 +141,14 @@ export function QuestList({
       )
     )
       return false;
-    if (!send({ type: 'quest/complete', id: quest.id, at })) {
+    if (
+      !send({
+        type: 'quest/complete',
+        id: quest.id,
+        at,
+        nextHabitId: quest.kind === 'habit' ? createId() : undefined,
+      })
+    ) {
       setCompletion({ quest, failed: true });
       return false;
     }
@@ -159,7 +166,9 @@ export function QuestList({
   const active = state.quests.filter(isActiveQuest);
   const empty =
     today && active.length ? (
-      <EmptyState>No quests of this size.</EmptyState>
+      <EmptyState>
+        {kindFilter === 'habit' ? 'No habits to show.' : 'No quests to show.'}
+      </EmptyState>
     ) : today ? (
       <div className={styles.todayEmpty}>
         <p>No quests yet.</p>
@@ -180,8 +189,7 @@ export function QuestList({
     ? active
         .filter(
           (quest) =>
-            sizeFilter === 'all' ||
-            (quest.size ?? questSizeFor(quest.xp)) === sizeFilter,
+            kindFilter === 'all' || (quest.kind ?? 'quest') === kindFilter,
         )
         .sort((a, b) => a.deadline - b.deadline)
     : active;
@@ -217,7 +225,7 @@ export function QuestList({
   return (
     <>
       {today ? (
-        <div key={sizeFilter} ref={ref} className={styles.today}>
+        <div key={kindFilter} ref={ref} className={styles.today}>
           {groups.map((group) => (
             <section
               className={styles.dueGroup}

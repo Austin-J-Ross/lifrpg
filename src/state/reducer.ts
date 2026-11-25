@@ -23,6 +23,7 @@ import type { BodyStatus, PhysicalStats, UnitSystem } from '../domain/physical';
 import type { MentalLogEntry, MentalStats } from '../domain/mental';
 import type { LifeStats } from '../domain/life';
 import { initializeDomainHealth } from '../domain/domainHealth';
+import { dayDeadline } from '../domain/deadlines';
 export type Action =
   | { type: 'profile/save'; profile: Profile }
   | { type: 'physical/stats-save'; stats: PhysicalStats }
@@ -73,7 +74,7 @@ export type Action =
       kind?: QuestKind;
       noDamage: boolean;
     }
-  | { type: 'quest/complete'; id: string; at: number }
+  | { type: 'quest/complete'; id: string; at: number; nextHabitId?: string }
   | { type: 'state/import'; state: AppState };
 export function reduceState(state: AppState, action: Action): AppState {
   let next: AppState;
@@ -333,11 +334,22 @@ export function reduceState(state: AppState, action: Action): AppState {
         (q) => q.id === action.id && isActiveQuest(q),
       );
       if (!q) return state;
+      const quests = state.quests.map((quest) =>
+        quest.id === q.id ? { ...quest, completedAt: action.at } : quest,
+      );
+      if (q.kind === 'habit') {
+        if (!action.nextHabitId)
+          throw Error('Could not schedule the next habit.');
+        quests.push({
+          ...q,
+          id: action.nextHabitId,
+          deadline: dayDeadline(1, new Date(action.at)),
+          damageDealt: undefined,
+        });
+      }
       next = {
         ...state,
-        quests: state.quests.map((quest) =>
-          quest.id === q.id ? { ...quest, completedAt: action.at } : quest,
-        ),
+        quests,
         classes: state.classes.map((c) =>
           c.id === q.classId
             ? {

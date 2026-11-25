@@ -5,23 +5,13 @@ import { useApp } from '../state/AppProvider';
 import { HealthRings } from '../features/domains/HealthRings';
 import { QuestList } from '../features/quests/QuestList';
 import { QuestForm } from '../features/quests/QuestForm';
-import {
-  questSizeKeys,
-  questSizes,
-  type QuestSize,
-} from '../domain/definitions';
-const sizeLabels: Record<QuestSize, string> = {
-  tiny: 't',
-  small: 'S',
-  medium: 'M',
-  large: 'L',
-  veryLarge: 'XL',
-};
+import { TaskTypeIcon } from '../features/quests/TaskTypeIcon';
+import { questKinds, type QuestKind } from '../domain/models';
 export function HomePage() {
   const {
     state: { profile, classes },
   } = useApp();
-  const [filter, setFilter] = useState<QuestSize | 'all'>('all');
+  const [filter, setFilter] = useState<QuestKind | 'all'>('all');
   const [addingQuest, setAddingQuest] = useState(false);
   const highestLevel = classes.reduce(
     (highest, { level }) => Math.max(highest, level),
@@ -67,32 +57,22 @@ export function HomePage() {
           Quest loadout
         </h1>
         <div className="loadout-toolbar">
-          <span className="loadout-size-label" id="loadout-size-label">
-            Task size
-          </span>
           <div
             className="loadout-filters"
             role="group"
-            aria-labelledby="loadout-size-label"
+            aria-label="Filter by task type"
           >
-            <button
-              type="button"
-              aria-pressed={filter === 'all'}
-              onClick={() => setFilter('all')}
-            >
-              All
-            </button>
-            {questSizeKeys.map((size) => (
+            {questKinds.map((kind) => (
               <button
                 type="button"
-                key={size}
-                aria-label={
-                  sizeLabels[size] + ' (' + questSizes[size].label + ')'
-                }
-                aria-pressed={filter === size}
-                onClick={() => setFilter(filter === size ? 'all' : size)}
+                key={kind}
+                data-task-kind={kind}
+                aria-label={kind === 'quest' ? 'Quests' : 'Habits'}
+                title={kind === 'quest' ? 'Quests' : 'Habits'}
+                aria-pressed={filter === kind}
+                onClick={() => setFilter(filter === kind ? 'all' : kind)}
               >
-                {sizeLabels[size]}
+                <TaskTypeIcon kind={kind} decorative />
               </button>
             ))}
           </div>
@@ -110,14 +90,9 @@ export function HomePage() {
         <QuestList
           layout="today"
           emptyAction={classes.length ? '/quests' : '/classes'}
-          sizeFilter={filter}
+          kindFilter={filter}
         />
-        {addingQuest && (
-          <QuestForm
-            initialSize={filter === 'all' ? undefined : filter}
-            onClose={() => setAddingQuest(false)}
-          />
-        )}
+        {addingQuest && <QuestForm onClose={() => setAddingQuest(false)} />}
       </section>
     </div>
   );

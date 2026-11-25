@@ -150,27 +150,6 @@
   outline-offset: -3px;
 }
 
-.questIcon,
-.habitIcon {
-  display: grid;
-  place-items: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  color: #17130c;
-  font-size: 17px;
-  font-weight: 800;
-  line-height: 1;
-}
-
-.questIcon {
-  background: #f6ca54;
-}
-
-.habitIcon {
-  background: #b9caa0;
-}
-
 .loadoutCopy,
 .loadoutStats {
   display: grid;
