@@ -26,18 +26,24 @@ async function soundStore<T>(
   }
 }
 
-export async function readCompletionSound(): Promise<string | null> {
+type CompletionSound = { data: string; filename: string | null };
+
+export async function readCompletionSound(): Promise<CompletionSound | null> {
   try {
-    const saved = await soundStore<string | null | undefined>(
+    const saved = await soundStore<CompletionSound | string | null | undefined>(
       'readonly',
       (store) => store.get(key),
     );
-    if (saved !== undefined) return saved;
+    if (saved !== undefined)
+      return typeof saved === 'string'
+        ? { data: saved, filename: null }
+        : saved;
   } catch {
     // Fall back to recordings saved by the previous version.
   }
   try {
-    return localStorage.getItem(key);
+    const data = localStorage.getItem(key);
+    return data ? { data, filename: null } : null;
   } catch {
     return null;
   }
@@ -74,12 +80,13 @@ export async function saveCompletionSound(file: File) {
     reader.readAsDataURL(blob);
   });
   try {
-    await soundStore('readwrite', (store) => store.put(clip, key));
+    await soundStore('readwrite', (store) =>
+      store.put({ data: clip, filename: file.name }, key),
+    );
   } catch {
     throw Error('Could not save the recording in this browser.');
   }
   decodedClip = buffer ? { data: clip, buffer } : undefined;
-  return clip;
 }
 
 export async function removeCompletionSound() {
@@ -121,7 +128,7 @@ export function prepareCompletionSound() {
       void ready
         .then(async (resumed) => {
           if (!resumed) return;
-          const clip = await readCompletionSound();
+          const clip = (await readCompletionSound())?.data;
           if (!clip) {
             playDefaultChime(audio);
             return;
