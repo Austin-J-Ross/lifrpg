@@ -20,7 +20,7 @@ export function ProfileForm() {
         file.size > maxPortraitUploadBytes ||
         !file.size)
     ) {
-      setPhotoError('Choose a JPEG, PNG, or WebP photo up to 5 MB.');
+      setPhotoError('Choose a JPEG, PNG, or WebP photo up to 10 MB.');
       return;
     }
     setSaving(true);
@@ -69,7 +69,7 @@ export function ProfileForm() {
         />
       </label>
       <p id="profile-photo-formats" className="form-note">
-        JPEG, PNG, or WebP up to 5 MB.
+        JPEG, PNG, or WebP up to 10 MB.
       </p>
       {profile.portrait && (
         <button

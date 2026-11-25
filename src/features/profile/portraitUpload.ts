@@ -1,4 +1,4 @@
-export const maxPortraitUploadBytes = 5 * 1024 * 1024;
+export const maxPortraitUploadBytes = 10 * 1024 * 1024;
 const maxSavedPortraitBytes = 1024 * 1024;
 
 async function downsizePortrait(file: File) {

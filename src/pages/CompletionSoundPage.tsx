@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { PageHeading } from '../components/ui/PageHeading';
 import {
+  maxCompletionSoundMB,
   prepareCompletionSound,
   readCompletionSound,
   removeCompletionSound,
@@ -8,9 +9,19 @@ import {
 } from '../features/quests/completionSound';
 
 export function CompletionSoundPage() {
-  const [clip, setClip] = useState(readCompletionSound);
+  const [hasClip, setHasClip] = useState<boolean | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    void readCompletionSound().then((clip) => {
+      if (active) setHasClip(Boolean(clip));
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <section className="page">
@@ -21,7 +32,7 @@ export function CompletionSoundPage() {
           id="completion-clip"
           type="file"
           accept=".m4a,.mp3,.wav,audio/mp4,audio/mpeg,audio/wav"
-          disabled={busy}
+          disabled={busy || hasClip === null}
           onChange={async (event) => {
             const file = event.target.files?.[0];
             event.target.value = '';
@@ -29,7 +40,8 @@ export function CompletionSoundPage() {
             setError('');
             setBusy(true);
             try {
-              setClip(await saveCompletionSound(file));
+              await saveCompletionSound(file);
+              setHasClip(true);
             } catch (reason) {
               setError(
                 reason instanceof Error
@@ -42,24 +54,32 @@ export function CompletionSoundPage() {
           }}
         />
         <p className="form-note">
-          M4A, MP3, or WAV up to 512 KB. Saved only in this browser.
+          M4A, MP3, or WAV up to {maxCompletionSoundMB} MB. Saved only in this
+          browser.
         </p>
         <p role="status" className="form-note">
-          {clip ? 'Using your recording.' : 'Using the default chime.'}
+          {hasClip === null
+            ? 'Loading sound preference…'
+            : hasClip
+              ? 'Using your recording.'
+              : 'Using the default chime.'}
         </p>
         {error && <p role="alert">{error}</p>}
         <div className="actions">
-          {clip && (
+          {hasClip && (
             <button
               type="button"
               disabled={busy}
-              onClick={() => {
+              onClick={async () => {
+                setBusy(true);
                 try {
-                  removeCompletionSound();
-                  setClip(null);
+                  await removeCompletionSound();
+                  setHasClip(false);
                   setError('');
                 } catch {
                   setError('Could not remove the recording.');
+                } finally {
+                  setBusy(false);
                 }
               }}
             >

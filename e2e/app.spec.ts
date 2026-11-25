@@ -146,14 +146,14 @@ test('About saves optional names and a photo independently', async ({
   );
 });
 
-test('resizes large portrait uploads and rejects files over 5 MB', async ({
+test('resizes large portrait uploads and rejects files over 10 MB', async ({
   page,
 }) => {
   await page.goto(origin + '/#/about');
   const photo = await page.evaluate(() => {
     const canvas = document.createElement('canvas');
-    canvas.width = 1000;
-    canvas.height = 1500;
+    canvas.width = 1200;
+    canvas.height = 1800;
     const ctx = canvas.getContext('2d')!;
     const pixels = ctx.createImageData(canvas.width, canvas.height);
     let seed = 12345;
@@ -170,8 +170,8 @@ test('resizes large portrait uploads and rejects files over 5 MB', async ({
     return canvas.toDataURL('image/png').split(',')[1];
   });
   const buffer = Buffer.from(photo, 'base64');
-  expect(buffer.length).toBeGreaterThan(1024 * 1024);
-  expect(buffer.length).toBeLessThanOrEqual(5 * 1024 * 1024);
+  expect(buffer.length).toBeGreaterThan(5 * 1024 * 1024);
+  expect(buffer.length).toBeLessThanOrEqual(10 * 1024 * 1024);
   const picker = page.getByLabel('Full-body photo (optional)');
   await picker.setInputFiles({
     name: 'large.png',
@@ -185,10 +185,10 @@ test('resizes large portrait uploads and rejects files over 5 MB', async ({
   await picker.setInputFiles({
     name: 'too-large.png',
     mimeType: 'image/png',
-    buffer: Buffer.alloc(5 * 1024 * 1024 + 1),
+    buffer: Buffer.alloc(10 * 1024 * 1024 + 1),
   });
   await page.getByRole('button', { name: 'Save profile' }).click();
-  await expect(page.getByRole('alert')).toContainText('up to 5 MB');
+  await expect(page.getByRole('alert')).toContainText('up to 10 MB');
   await page.reload();
   await page
     .getByRole('navigation')

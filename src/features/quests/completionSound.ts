@@ -1,9 +1,41 @@
 const key = 'quest-completion-sound';
-const maxBytes = 512 * 1024;
+export const maxCompletionSoundMB = 10;
+const maxBytes = maxCompletionSoundMB * 1024 * 1024;
 let context: AudioContext | undefined;
 let decodedClip: { data: string; buffer: AudioBuffer } | undefined;
 
-export function readCompletionSound() {
+async function soundStore<T>(
+  mode: IDBTransactionMode,
+  operation: (store: IDBObjectStore) => IDBRequest<T>,
+): Promise<T> {
+  const db = await new Promise<IDBDatabase>((resolve, reject) => {
+    const request = indexedDB.open('quest-audio', 1);
+    request.onupgradeneeded = () => request.result.createObjectStore('sounds');
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+  try {
+    return await new Promise<T>((resolve, reject) => {
+      const transaction = db.transaction('sounds', mode);
+      const request = operation(transaction.objectStore('sounds'));
+      transaction.oncomplete = () => resolve(request.result);
+      transaction.onabort = () => reject(transaction.error);
+    });
+  } finally {
+    db.close();
+  }
+}
+
+export async function readCompletionSound(): Promise<string | null> {
+  try {
+    const saved = await soundStore<string | null | undefined>(
+      'readonly',
+      (store) => store.get(key),
+    );
+    if (saved !== undefined) return saved;
+  } catch {
+    // Fall back to recordings saved by the previous version.
+  }
   try {
     return localStorage.getItem(key);
   } catch {
@@ -22,7 +54,9 @@ export async function saveCompletionSound(file: File) {
           ? 'audio/wav'
           : '';
   if (!type || !file.size || file.size > maxBytes)
-    throw Error('Choose an M4A, MP3, or WAV file up to 512 KB.');
+    throw Error(
+      `Choose an M4A, MP3, or WAV file up to ${maxCompletionSoundMB} MB.`,
+    );
   const blob = new Blob([file], { type });
   let buffer: AudioBuffer | undefined;
   if (typeof AudioContext !== 'undefined') {
@@ -40,7 +74,7 @@ export async function saveCompletionSound(file: File) {
     reader.readAsDataURL(blob);
   });
   try {
-    localStorage.setItem(key, clip);
+    await soundStore('readwrite', (store) => store.put(clip, key));
   } catch {
     throw Error('Could not save the recording in this browser.');
   }
@@ -48,8 +82,9 @@ export async function saveCompletionSound(file: File) {
   return clip;
 }
 
-export function removeCompletionSound() {
-  localStorage.removeItem(key);
+export async function removeCompletionSound() {
+  // A stored null also suppresses any recording from the previous version.
+  await soundStore('readwrite', (store) => store.put(null, key));
   decodedClip = undefined;
 }
 
@@ -73,7 +108,6 @@ function playDefaultChime(audio: AudioContext) {
 }
 
 export function prepareCompletionSound() {
-  const clip = readCompletionSound();
   if (typeof AudioContext === 'undefined') return undefined;
 
   try {
@@ -87,6 +121,7 @@ export function prepareCompletionSound() {
       void ready
         .then(async (resumed) => {
           if (!resumed) return;
+          const clip = await readCompletionSound();
           if (!clip) {
             playDefaultChime(audio);
             return;
