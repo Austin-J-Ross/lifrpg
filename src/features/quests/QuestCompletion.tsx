@@ -3,6 +3,7 @@ import { ProgressBar } from '../../components/ui/ProgressBar';
 import type { Quest } from '../../domain/models';
 import type { skillProgress } from '../../domain/progression';
 import { useApp } from '../../state/AppProvider';
+import { prepareCompletionSound } from './completionSound';
 
 export interface QuestAward {
   skill: string;
@@ -19,7 +20,7 @@ export function QuestCompletion({
 }: {
   quest: Quest;
   award?: QuestAward;
-  onConfirm: (at: number) => void;
+  onConfirm: (at: number, playSound?: () => void) => void;
   failed?: boolean;
   onClose: (completed: boolean) => void;
 }) {
@@ -93,7 +94,7 @@ export function QuestCompletion({
             <button
               className="primary"
               type="button"
-              onClick={() => onConfirm(Date.now())}
+              onClick={() => onConfirm(Date.now(), prepareCompletionSound())}
             >
               Confirm completion
             </button>

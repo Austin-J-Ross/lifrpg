@@ -6,13 +6,13 @@ import { HealthRings } from '../features/domains/HealthRings';
 import { QuestList } from '../features/quests/QuestList';
 import { QuestForm } from '../features/quests/QuestForm';
 import { TaskTypeIcon } from '../features/quests/TaskTypeIcon';
-import { questKinds, type QuestKind } from '../domain/models';
+import { questKinds, type Quest, type QuestKind } from '../domain/models';
 export function HomePage() {
   const {
     state: { profile, classes },
   } = useApp();
   const [filter, setFilter] = useState<QuestKind | 'all'>('all');
-  const [addingQuest, setAddingQuest] = useState(false);
+  const [form, setForm] = useState<Quest | 'new' | null>(null);
   const highestLevel = classes.reduce(
     (highest, { level }) => Math.max(highest, level),
     0,
@@ -81,18 +81,24 @@ export function HomePage() {
             className="add-button loadout-add"
             type="button"
             aria-label="Add task"
-            onClick={() => setAddingQuest(true)}
+            onClick={() => setForm('new')}
           >
             <span aria-hidden="true">+</span>
           </button>
         </div>
-        <p className="loadout-hint">Slide right to complete</p>
+        <p className="loadout-hint">Slide left to edit · right to complete</p>
         <QuestList
           layout="today"
           emptyAction={classes.length ? '/quests' : '/classes'}
           kindFilter={filter}
+          onEdit={setForm}
         />
-        {addingQuest && <QuestForm onClose={() => setAddingQuest(false)} />}
+        {form && (
+          <QuestForm
+            quest={form === 'new' ? undefined : form}
+            onClose={() => setForm(null)}
+          />
+        )}
       </section>
     </div>
   );

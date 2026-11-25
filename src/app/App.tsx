@@ -11,6 +11,7 @@ import { PhysicalStatsPage } from '../pages/PhysicalStatsPage';
 import { MentalStatsPage } from '../pages/MentalStatsPage';
 import { LifeStatsPage } from '../pages/LifeStatsPage';
 import { DomainHealthPage } from '../pages/DomainHealthPage';
+import { CompletionSoundPage } from '../pages/CompletionSoundPage';
 export function App({ demoState }: { demoState?: AppState }) {
   return (
     <AppProvider demoState={demoState}>
@@ -27,6 +28,7 @@ export function App({ demoState }: { demoState?: AppState }) {
             <Route path="mental" element={<MentalStatsPage />} />
             <Route path="life" element={<LifeStatsPage />} />
             <Route path="domain-health" element={<DomainHealthPage />} />
+            <Route path="completion-sound" element={<CompletionSoundPage />} />
             <Route path="*" element={<Navigate to="/home" replace />} />
           </Route>
         </Routes>

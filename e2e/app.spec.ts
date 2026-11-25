@@ -368,7 +368,7 @@ test.describe('touch navigation', () => {
     await expect(menu).toHaveAttribute('aria-expanded', 'false');
   });
 
-  test('filters the vertical loadout, quick-adds a habit, and completes by swiping', async ({
+  test('filters the vertical loadout, quick-adds a habit, and edits and completes by swiping', async ({
     page,
   }) => {
     await page.setViewportSize({ width: 390, height: 520 });
@@ -441,14 +441,14 @@ test.describe('touch navigation', () => {
     await questsFilter.click();
     await expect(rows).toHaveCount(4);
     const quest = today.getByRole('button', {
-      name: 'Complete Finish the bathroom trim',
+      name: /Complete Finish the (bathroom|hallway) trim/,
     });
     const box = await quest.boundingBox();
     if (!box) throw new Error('Quest row not visible');
     const client = await page.context().newCDPSession(page);
     const y = Math.round(box.y + box.height / 2);
-    const startX = Math.round(box.x + 12);
     async function swipe(fraction: number) {
+      const startX = Math.round(box!.x + (fraction < 0 ? box!.width - 24 : 24));
       await client.send('Input.dispatchTouchEvent', {
         type: 'touchStart',
         touchPoints: [{ x: startX, y }],
@@ -469,6 +469,18 @@ test.describe('touch navigation', () => {
     await expect(quest).toHaveCSS('transform', 'none');
     await expect(rows).toHaveCount(4);
     await expect(page.getByRole('dialog')).toHaveCount(0);
+    await swipe(-0.3);
+    await expect(quest).toHaveCSS('transform', 'none');
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await swipe(-0.45);
+    const edit = page.getByRole('dialog', { name: 'Edit quest' });
+    await expect(edit.getByLabel('Quest objective')).toHaveValue(
+      'Finish the bathroom trim',
+    );
+    await edit.getByLabel('Quest objective').fill('Finish the hallway trim');
+    await edit.getByRole('button', { name: 'Save changes' }).click();
+    await expect(edit).toHaveCount(0);
+    await expect(quest).toHaveText(/Finish the hallway trim/);
     await swipe(0.7);
     const reward = page.getByRole('dialog', { name: 'Quest complete' });
     await expect(

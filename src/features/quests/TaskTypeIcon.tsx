@@ -27,7 +27,7 @@ export function TaskTypeIcon({
       {kind === 'habit' ? (
         <path d="M19 10a7 7 0 1 0-1 7m1-12v5h-5" />
       ) : (
-        <path d="M12 4v10m0 5v.1" />
+        <path d="M12 4v10m0 5v.1" strokeWidth={3.5} />
       )}
     </svg>
   );

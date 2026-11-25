@@ -121,6 +121,17 @@
   font-size: 20px;
 }
 
+.swipeTrack[data-direction='left'] {
+  justify-content: flex-end;
+  background: #332a15;
+  color: #ffd45f;
+}
+
+.swipeTrack[data-direction='left'][data-ready='true'] {
+  background: #ffd45f;
+  color: #261b06;
+}
+
 .swipeFace {
   position: relative;
   display: grid;

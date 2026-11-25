@@ -14,6 +14,7 @@ const pageTitles: Record<string, string> = {
   '/quests': 'Quest Log',
   '/mental': 'Mental Stats',
   '/domain-health': 'Domain Health',
+  '/completion-sound': 'Completion sound',
 };
 export function AppLayout() {
   const location = useLocation();

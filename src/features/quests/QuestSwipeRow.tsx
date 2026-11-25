@@ -2,6 +2,10 @@ import { useEffect, useRef, useState, type PointerEvent } from 'react';
 import type { CharacterClass, Quest } from '../../domain/models';
 import styles from './QuestList.module.css';
 import { TaskTypeIcon } from './TaskTypeIcon';
+import { prepareCompletionSound } from './completionSound';
+
+const editThreshold = 0.4;
+const completionThreshold = 0.6;
 
 export function QuestSwipeRow({
   quest,
@@ -10,13 +14,15 @@ export function QuestSwipeRow({
   damage,
   onSwipe,
   onConfirm,
+  onEdit,
 }: {
   quest: Quest;
   entry: CharacterClass;
   skillName: string;
   damage: number;
-  onSwipe: (at: number) => boolean;
+  onSwipe: (at: number, playSound?: () => void) => boolean;
   onConfirm: () => void;
+  onEdit?: () => void;
 }) {
   const drag = useRef<{ id: number; start: number; width: number } | null>(
     null,
@@ -25,6 +31,7 @@ export function QuestSwipeRow({
   const [offset, setOffset] = useState(0);
   const [dragging, setDragging] = useState(false);
   const [ready, setReady] = useState(false);
+  const [direction, setDirection] = useState<'left' | 'right'>('right');
   const [completing, setCompleting] = useState(false);
 
   useEffect(
@@ -50,10 +57,15 @@ export function QuestSwipeRow({
     if (!gesture || gesture.id !== event.pointerId) return;
     const distance = Math.min(
       gesture.width,
-      Math.max(0, event.clientX - gesture.start),
+      Math.max(onEdit ? -gesture.width : 0, event.clientX - gesture.start),
     );
+    if (distance !== 0) setDirection(distance < 0 ? 'left' : 'right');
     setOffset(distance);
-    setReady(distance >= gesture.width * 0.6);
+    setReady(
+      distance < 0
+        ? -distance >= gesture.width * editThreshold
+        : distance >= gesture.width * completionThreshold,
+    );
   }
 
   function release(event: PointerEvent<HTMLButtonElement>) {
@@ -61,16 +73,19 @@ export function QuestSwipeRow({
     if (!gesture || gesture.id !== event.pointerId) return;
     drag.current = null;
     setDragging(false);
+    const distance = event.clientX - gesture.start;
     if (
       event.type === 'pointerup' &&
-      event.clientX - gesture.start >= gesture.width * 0.6
+      distance >= gesture.width * completionThreshold
     ) {
+      setDirection('right');
       setReady(true);
       setCompleting(true);
       setOffset(gesture.width);
       const at = Date.now();
+      const playSound = prepareCompletionSound();
       const finish = () => {
-        if (!onSwipe(at)) {
+        if (!onSwipe(at, playSound)) {
           setCompleting(false);
           setOffset(0);
           setReady(false);
@@ -82,14 +97,33 @@ export function QuestSwipeRow({
     } else {
       setOffset(0);
       setReady(false);
+      if (
+        event.type === 'pointerup' &&
+        distance <= -gesture.width * editThreshold
+      ) {
+        onEdit?.();
+      }
     }
   }
 
   return (
     <article className={styles.swipeRow}>
-      <div className={styles.swipeTrack} data-ready={ready} aria-hidden="true">
-        <span>✓</span>
-        {ready ? 'Complete' : 'Slide right'}
+      <div
+        className={styles.swipeTrack}
+        data-ready={ready}
+        data-direction={direction}
+        aria-hidden="true"
+      >
+        {direction === 'left' ? (
+          <>
+            Edit <span>✎</span>
+          </>
+        ) : (
+          <>
+            <span>✓</span>
+            {ready ? 'Complete' : 'Slide right'}
+          </>
+        )}
       </div>
       <button
         type="button"

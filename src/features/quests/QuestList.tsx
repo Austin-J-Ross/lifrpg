@@ -21,7 +21,7 @@ function QuestItem({
   quest: Quest;
   onComplete: () => void;
   now: number;
-  onSwipe?: (at: number) => boolean;
+  onSwipe?: (at: number, playSound?: () => void) => boolean;
   onEdit?: () => void;
 }) {
   const { state } = useApp();
@@ -38,6 +38,7 @@ function QuestItem({
         damage={quest.damageDealt ?? 0}
         onSwipe={onSwipe}
         onConfirm={onComplete}
+        onEdit={onEdit}
       />
     );
   }
@@ -130,7 +131,7 @@ export function QuestList({
       )?.focus();
     }
   }, [completion]);
-  function complete(quest: Quest, at: number) {
+  function complete(quest: Quest, at: number, playSound?: () => void) {
     const skill = state.classes
       .find(({ id }) => id === quest.classId)
       ?.skills.find(({ id }) => id === quest.skillId);
@@ -160,6 +161,7 @@ export function QuestList({
         after: skillProgress(skill.xp + quest.xp),
       },
     });
+    playSound?.();
     return true;
   }
   const today = layout === 'today';
@@ -217,7 +219,9 @@ export function QuestList({
       key={quest.id}
       quest={quest}
       now={now}
-      onSwipe={today ? (at) => complete(quest, at) : undefined}
+      onSwipe={
+        today ? (at, playSound) => complete(quest, at, playSound) : undefined
+      }
       onComplete={() => setCompletion({ quest })}
       onEdit={onEdit ? () => onEdit(quest) : undefined}
     />
@@ -250,7 +254,9 @@ export function QuestList({
           quest={completion.quest}
           award={completion.award}
           failed={completion.failed}
-          onConfirm={(at) => complete(completion.quest, at)}
+          onConfirm={(at, playSound) =>
+            complete(completion.quest, at, playSound)
+          }
           onClose={(completed) => {
             focus.current = completed;
             setCompletion(null);
